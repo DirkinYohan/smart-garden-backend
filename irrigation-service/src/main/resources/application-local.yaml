@@ -1,0 +1,11 @@
+# Running from the IDE against `docker compose up -d mosquitto` (database: Supabase, see application.yaml).
+spring:
+  grpc:
+    client:
+      channel:
+        telemetry:
+          target: ${TELEMETRY_GRPC_TARGET:static://localhost:9091}
+
+logging:
+  level:
+    com.smartgarden: DEBUG
