@@ -1,0 +1,9 @@
+# Running from the IDE against `docker compose up -d mosquitto` (database: Supabase, see application.yaml).
+
+smartgarden:
+  mqtt:
+    host: ${MQTT_HOST:localhost}
+
+logging:
+  level:
+    com.smartgarden: DEBUG
