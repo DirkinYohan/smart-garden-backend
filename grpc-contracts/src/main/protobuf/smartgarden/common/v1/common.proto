@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package smartgarden.common.v1;
+
+option java_multiple_files = true;
+option java_package = "com.smartgarden.contracts.common.v1";
+option java_outer_classname = "CommonProto";
+
+// Irrigation mode shared by the ESP32, irrigation-service and ai-service.
+enum IrrigationMode {
+  IRRIGATION_MODE_UNSPECIFIED = 0;
+  IRRIGATION_MODE_AUTO = 1;
+  IRRIGATION_MODE_MANUAL = 2;
+  IRRIGATION_MODE_AI = 3;
+}
+
+enum PumpAction {
+  PUMP_ACTION_UNSPECIFIED = 0;
+  PUMP_ACTION_ON = 1;
+  PUMP_ACTION_OFF = 2;
+}
