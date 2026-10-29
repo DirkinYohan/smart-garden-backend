@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package smartgarden.irrigation.v1;
+
+option java_multiple_files = true;
+option java_package = "com.smartgarden.contracts.irrigation.v1";
+option java_outer_classname = "IrrigationProto";
+
+import "google/protobuf/timestamp.proto";
+import "smartgarden/common/v1/common.proto";
+
+// Owned by irrigation-service. Source of truth for the irrigation configuration.
+service IrrigationService {
+  rpc GetConfig(GetConfigRequest) returns (IrrigationConfig);
+  // Partial update: only the fields that are set are changed.
+  rpc UpdateConfig(UpdateConfigRequest) returns (IrrigationConfig);
+  rpc ListCropProfiles(ListCropProfilesRequest) returns (ListCropProfilesResponse);
+  // Creates the profile when id == 0, otherwise updates it.
+  rpc UpsertCropProfile(UpsertCropProfileRequest) returns (CropProfile);
+  // Only allowed in MANUAL mode (FAILED_PRECONDITION otherwise).
+  rpc ManualIrrigation(ManualIrrigationRequest) returns (ManualIrrigationResponse);
+  // Only applied when the current mode is AI.
+  rpc ApplyAiRecommendation(ApplyAiRecommendationRequest) returns (ApplyAiRecommendationResponse);
+  // Emits the full configuration every time it changes.
+  rpc StreamConfigChanges(StreamConfigChangesRequest) returns (stream IrrigationConfig);
+}
+
+message CropProfile {
+  int64 id = 1;
+  string name = 2;
+  int32 min_moisture = 3;
+  int32 max_moisture = 4;
+  string description = 5;
+}
+
+message IrrigationConfig {
+  smartgarden.common.v1.IrrigationMode mode = 1;
+  CropProfile crop = 2;
+  int32 min_moisture = 3;
+  int32 max_moisture = 4;
+  bool rain_pause = 5;
+  bool ai_enabled = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  // "USER", "AI" or "SYSTEM".
+  string updated_by = 8;
+  string last_analysis_id = 9;
+}
+
+message GetConfigRequest {}
+
+message UpdateConfigRequest {
+  optional smartgarden.common.v1.IrrigationMode mode = 1;
+  optional int64 crop_profile_id = 2;
+  optional int32 min_moisture = 3;
+  optional int32 max_moisture = 4;
+  optional bool rain_pause = 5;
+  optional bool ai_enabled = 6;
+}
+
+message ListCropProfilesRequest {}
+
+message ListCropProfilesResponse {
+  repeated CropProfile profiles = 1;
+}
+
+message UpsertCropProfileRequest {
+  CropProfile profile = 1;
+}
+
+message ManualIrrigationRequest {
+  smartgarden.common.v1.PumpAction action = 1;
+  int32 duration_sec = 2;
+  // Clave de idempotencia del cliente (cabecera Idempotency-Key). Vacía = sin deduplicación.
+  string request_id = 3;
+}
+
+message ManualIrrigationResponse {
+  bool accepted = 1;
+  string message = 2;
+}
+
+message ApplyAiRecommendationRequest {
+  int32 min_moisture = 1;
+  int32 max_moisture = 2;
+  bool rain_pause = 3;
+  string analysis_id = 4;
+}
+
+message ApplyAiRecommendationResponse {
+  bool applied = 1;
+  string message = 2;
+  IrrigationConfig config = 3;
+}
+
+message StreamConfigChangesRequest {}
