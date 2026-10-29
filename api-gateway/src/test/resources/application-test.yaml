@@ -1,0 +1,31 @@
+# In-memory H2 so tests do not need Docker; gRPC targets point to a closed port (services "down").
+spring:
+  datasource:
+    url: jdbc:h2:mem:gateway_db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+  grpc:
+    client:
+      channel:
+        telemetry:
+          target: static://127.0.0.1:1
+        irrigation:
+          target: static://127.0.0.1:1
+        ai:
+          target: static://127.0.0.1:1
+
+smartgarden:
+  # En tests no hay autenticación entre servicios
+  internal-token: ""
+  security:
+    jwt:
+      secret: test-secret-0123456789-abcdefghijklmnop
+    admin:
+      username: admin
+      password: test-password
+  grpc:
+    deadline: 2s
+    streams-enabled: false
