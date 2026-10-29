@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    default: local
+  config:
+    # Running from the IDE: read KEY=VALUE pairs from smart-garden-backend/.env (never committed).
+    # Real environment variables take precedence; in Docker the file is not present.
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  # Supabase PostgreSQL: este servicio tiene SU PROPIO proyecto (servidor PostgreSQL independiente).
+  # Session pooler en el puerto 5432 (soporta los prepared statements de Hibernate). La base del proyecto
+  # siempre se llama "postgres"; lo que cambia por servicio es el host y el usuario del pooler.
+  # Se mantiene el esquema propio ("gateway") en vez de "public": Supabase expone "public" por su Data API y
+  # las tablas sin RLS quedarían accesibles; además Flyway e Hibernate siguen igual (schemas/default-schema).
+  datasource:
+    url: jdbc:postgresql://${GATEWAY_DB_HOST}:5432/postgres?sslmode=require&currentSchema=gateway
+    username: ${GATEWAY_DB_USER}
+    password: ${GATEWAY_DB_PASSWORD}
+    hikari:
+      # Cada proyecto tiene su propio pooler: 5 conexiones por servicio.
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      keepalive-time: 300000
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: gateway
+    hibernate:
+      # Flyway owns the schema; Hibernate only validates it.
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    schemas: gateway
+    default-schema: gateway
+    create-schemas: true
+  grpc:
+    client:
+      # Plaintext HTTP/2 (h2c) inside the Docker network. TLS: see README "gRPC con TLS".
+      # Keepalive pings detect dead connections on the long-lived streams.
+      channel:
+        telemetry:
+          target: ${TELEMETRY_GRPC_TARGET:static://localhost:9091}
+          keepalive:
+            time: 30s
+            timeout: 10s
+            without-calls: true
+        irrigation:
+          target: ${IRRIGATION_GRPC_TARGET:static://localhost:9092}
+          keepalive:
+            time: 30s
+            timeout: 10s
+            without-calls: true
+        ai:
+          target: ${AI_GRPC_TARGET:static://localhost:9093}
+          keepalive:
+            time: 30s
+            timeout: 10s
+            without-calls: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # health para los healthchecks; metrics/prometheus para Monitorizar (Prometheus/Grafana)
+        include: health,info,metrics,prometheus
+
+springdoc:
+  # En producción conviene apagarlo: SPRINGDOC_ENABLED=false
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SPRINGDOC_ENABLED:true}
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${SPRINGDOC_ENABLED:true}
+
+smartgarden:
+  # Autenticación entre servicios (cabecera gRPC x-internal-token). Vacío = desactivada.
+  internal-token: ${INTERNAL_TOKEN:}
+  security:
+    jwt:
+      # HMAC-SHA256 secret, at least 32 characters.
+      secret: ${JWT_SECRET:}
+      expiration: 12h
+    admin:
+      # Solo se usan la PRIMERA vez (base de datos vacía). Después se pueden borrar del .env.
+      username: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:}
+      # Recuperación: restablece la contraseña al arrancar. Quitar la variable después de usarla.
+      reset-password: ${ADMIN_RESET_PASSWORD:}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  grpc:
+    deadline: 10s
+    # Backoff used to re-open the gRPC streams when a service restarts.
+    stream-initial-backoff: 1s
+    stream-max-backoff: 30s
+
+logging:
+  level:
+    com.smartgarden: INFO
+
