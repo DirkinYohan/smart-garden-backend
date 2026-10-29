@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: telemetry-service
+  profiles:
+    default: local
+  config:
+    # Running from the IDE: read KEY=VALUE pairs from smart-garden-backend/.env (never committed).
+    # Real environment variables take precedence; in Docker the file is not present.
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  # Supabase PostgreSQL: este servicio tiene SU PROPIO proyecto (servidor PostgreSQL independiente).
+  # Session pooler en el puerto 5432 (soporta los prepared statements de Hibernate). La base del proyecto
+  # siempre se llama "postgres"; lo que cambia por servicio es el host y el usuario del pooler.
+  # Se mantiene el esquema propio ("telemetry") en vez de "public": Supabase expone "public" por su Data API y
+  # las tablas sin RLS quedarían accesibles; además Flyway e Hibernate siguen igual (schemas/default-schema).
+  datasource:
+    url: jdbc:postgresql://${TELEMETRY_DB_HOST}:5432/postgres?sslmode=require&currentSchema=telemetry
+    username: ${TELEMETRY_DB_USER}
+    password: ${TELEMETRY_DB_PASSWORD}
+    hikari:
+      # Cada proyecto tiene su propio pooler: 5 conexiones por servicio.
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      keepalive-time: 300000
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: telemetry
+    hibernate:
+      # Flyway owns the schema; Hibernate only validates it.
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    schemas: telemetry
+    default-schema: telemetry
+    create-schemas: true
+  grpc:
+    server:
+      # Plaintext HTTP/2 (h2c) inside the Docker network. TLS: see README "gRPC con TLS".
+      port: 9091
+      shutdown:
+        grace-period: 5s
+      # Allow client keepalive pings on long-lived streams.
+      keepalive:
+        permit:
+          time: 20s
+          without-calls: true
+
+server:
+  # Management only (Actuator); the business API is gRPC on 9091.
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # health para los healthchecks; metrics/prometheus para Monitorizar (Prometheus/Grafana)
+        include: health,info,metrics,prometheus
+
+smartgarden:
+  # Autenticación entre servicios (cabecera gRPC x-internal-token). Vacío = desactivada.
+  internal-token: ${INTERNAL_TOKEN:}
+  mqtt:
+    host: ${MQTT_HOST:localhost}
+    port: ${MQTT_PORT:1883}
+    username: ${MQTT_USERNAME:}
+    password: ${MQTT_PASSWORD:}
+    client-id: telemetry-service-${random.uuid}
+    telemetry-topic: smartgarden/esp32/telemetry
+    status-topic: smartgarden/esp32/status
+    commands-topic: smartgarden/esp32/commands
+    qos: 1
+  telemetry:
+    # Minimum interval between two persisted readings (pumpOn changes are always stored).
+    persist-interval: 30s
+    # Device is offline when no reading arrives within this window.
+    offline-timeout: 30s
+    offline-check-interval: 5s
+    # Garden time zone for per-day statistics.
+    zone: ${GARDEN_TIMEZONE:America/Bogota}
+
+logging:
+  level:
+    com.smartgarden: INFO
+
