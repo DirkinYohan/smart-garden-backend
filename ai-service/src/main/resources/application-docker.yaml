@@ -1,0 +1,8 @@
+spring:
+  grpc:
+    client:
+      channel:
+        telemetry:
+          target: ${TELEMETRY_GRPC_TARGET:static://telemetry-service:9091}
+        irrigation:
+          target: ${IRRIGATION_GRPC_TARGET:static://irrigation-service:9092}
