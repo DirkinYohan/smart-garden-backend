@@ -1,0 +1,8 @@
+version: v2
+
+inputs:
+  - directory: grpc-contracts/src/main/protobuf
+
+plugins:
+  - local: protoc-gen-java
+    out: build/buf-gen
