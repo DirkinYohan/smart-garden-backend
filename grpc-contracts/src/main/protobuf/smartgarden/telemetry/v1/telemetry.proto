@@ -1,0 +1,182 @@
+syntax = "proto3";
+
+package smartgarden.telemetry.v1;
+
+option java_multiple_files = true;
+option java_package = "com.smartgarden.contracts.telemetry.v1";
+option java_outer_classname = "TelemetryProto";
+
+import "google/protobuf/timestamp.proto";
+import "smartgarden/common/v1/common.proto";
+
+// Owned by telemetry-service. Bridges the ESP32 (MQTT) and the rest of the system.
+service TelemetryService {
+  // Latest reading plus whether the device is considered online.
+  rpc GetCurrentStatus(GetCurrentStatusRequest) returns (CurrentStatus);
+  // Aggregated moisture series: 5 min buckets (24h), 1 h (7d), 6 h (30d).
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse);
+  // Irrigation events derived from pumpOn transitions, newest first.
+  rpc GetIrrigationEvents(GetIrrigationEventsRequest) returns (GetIrrigationEventsResponse);
+  // Publishes a PUMP or CONFIG command to the ESP32 over MQTT.
+  rpc SendDeviceCommand(SendDeviceCommandRequest) returns (SendDeviceCommandResponse);
+  // Emits every new reading received from the device.
+  rpc StreamTelemetry(StreamTelemetryRequest) returns (stream TelemetryReading);
+  // Emits online/offline transitions of the device.
+  rpc StreamDeviceStatus(StreamDeviceStatusRequest) returns (stream DeviceStatusEvent);
+  // Valid readings (sensor_ok) of the last hours, oldest first. Used for the drying-rate regression.
+  rpc GetRecentSamples(GetRecentSamplesRequest) returns (GetRecentSamplesResponse);
+  // Per-day moisture aggregates (valid readings only) and irrigation totals.
+  rpc GetDailyStats(GetDailyStatsRequest) returns (GetDailyStatsResponse);
+}
+
+message TelemetryReading {
+  string device_id = 1;
+  int32 raw = 2;
+  int32 moisture = 3;
+  bool pump_on = 4;
+  bool sensor_ok = 5;
+  smartgarden.common.v1.IrrigationMode mode = 6;
+  int32 min_moisture = 7;
+  int32 max_moisture = 8;
+  bool rain_pause = 9;
+  int64 uptime_ms = 10;
+  google.protobuf.Timestamp received_at = 11;
+}
+
+message GetCurrentStatusRequest {}
+
+message CurrentStatus {
+  bool has_reading = 1;
+  TelemetryReading reading = 2;
+  bool device_online = 3;
+  // Last value seen on smartgarden/esp32/status: "online", "offline" or "unknown".
+  string device_status = 4;
+  google.protobuf.Timestamp last_seen = 5;
+  // Most recent reading with sensor_ok = true (may be older than `reading`). Not set if none.
+  TelemetryReading last_valid_reading = 6;
+}
+
+enum HistoryRange {
+  HISTORY_RANGE_UNSPECIFIED = 0;
+  HISTORY_RANGE_24H = 1;
+  HISTORY_RANGE_7D = 2;
+  HISTORY_RANGE_30D = 3;
+}
+
+message GetHistoryRequest {
+  HistoryRange range = 1;
+}
+
+message HistoryPoint {
+  google.protobuf.Timestamp bucket_start = 1;
+  double avg_moisture = 2;
+  int32 min_moisture = 3;
+  int32 max_moisture = 4;
+  int32 samples = 5;
+  // True if the pump was on in any sample of the bucket.
+  bool pump_active = 6;
+}
+
+message GetHistoryResponse {
+  HistoryRange range = 1;
+  int32 interval_minutes = 2;
+  repeated HistoryPoint points = 3;
+}
+
+message GetIrrigationEventsRequest {
+  int32 limit = 1;
+}
+
+message IrrigationEvent {
+  int64 id = 1;
+  string device_id = 2;
+  google.protobuf.Timestamp started_at = 3;
+  // Not set while the event is in progress.
+  google.protobuf.Timestamp ended_at = 4;
+  int64 duration_sec = 5;
+  int32 start_moisture = 6;
+  int32 end_moisture = 7;
+  smartgarden.common.v1.IrrigationMode mode = 8;
+  bool in_progress = 9;
+}
+
+message GetIrrigationEventsResponse {
+  repeated IrrigationEvent events = 1;
+}
+
+message PumpCommand {
+  smartgarden.common.v1.PumpAction action = 1;
+  // Only used with PUMP_ACTION_ON.
+  int32 duration_sec = 2;
+}
+
+message ConfigCommand {
+  smartgarden.common.v1.IrrigationMode mode = 1;
+  int32 min_moisture = 2;
+  int32 max_moisture = 3;
+  bool rain_pause = 4;
+}
+
+message SendDeviceCommandRequest {
+  oneof command {
+    PumpCommand pump = 1;
+    ConfigCommand config = 2;
+  }
+  // Clave de idempotencia: dos peticiones con el mismo id no repiten el comando (reintentos de red).
+  string request_id = 3;
+}
+
+message SendDeviceCommandResponse {
+  bool published = 1;
+  string topic = 2;
+  string payload = 3;
+  bool retained = 4;
+}
+
+message StreamTelemetryRequest {}
+
+message StreamDeviceStatusRequest {}
+
+message DeviceStatusEvent {
+  string device_id = 1;
+  bool online = 2;
+  // "status-message", "last-will" or "timeout".
+  string reason = 3;
+  google.protobuf.Timestamp changed_at = 4;
+}
+
+message GetRecentSamplesRequest {
+  // 1..24
+  int32 hours = 1;
+}
+
+message MoistureSample {
+  google.protobuf.Timestamp time = 1;
+  int32 moisture = 2;
+  bool pump_on = 3;
+}
+
+message GetRecentSamplesResponse {
+  repeated MoistureSample samples = 1;
+}
+
+message GetDailyStatsRequest {
+  // 1..31
+  int32 days = 1;
+}
+
+message DailyStat {
+  // Local date (garden time zone), yyyy-MM-dd
+  string date = 1;
+  // Not set when the day has no valid readings.
+  optional double avg_moisture = 2;
+  optional int32 min_moisture = 3;
+  optional int32 max_moisture = 4;
+  int32 samples = 5;
+  int32 irrigations = 6;
+  double pump_minutes = 7;
+}
+
+message GetDailyStatsResponse {
+  repeated DailyStat days = 1;
+}
