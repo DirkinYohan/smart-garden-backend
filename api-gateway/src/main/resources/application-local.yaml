@@ -1,0 +1,12 @@
+# Running from the IDE: gRPC targets default to localhost; database: Supabase (see application.yaml).
+smartgarden:
+  security:
+    jwt:
+      # Local development only; the docker profile requires JWT_SECRET.
+      secret: ${JWT_SECRET:local-dev-secret-change-me-0123456789abcdef}
+    admin:
+      password: ${ADMIN_PASSWORD:admin123}
+
+logging:
+  level:
+    com.smartgarden: DEBUG
