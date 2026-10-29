@@ -1,0 +1,6 @@
+spring:
+  grpc:
+    client:
+      channel:
+        telemetry:
+          target: ${TELEMETRY_GRPC_TARGET:static://telemetry-service:9091}
