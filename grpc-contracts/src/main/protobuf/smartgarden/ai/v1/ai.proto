@@ -1,0 +1,290 @@
+syntax = "proto3";
+
+package smartgarden.ai.v1;
+
+option java_multiple_files = true;
+option java_package = "com.smartgarden.contracts.ai.v1";
+option java_outer_classname = "AiProto";
+
+import "google/protobuf/timestamp.proto";
+
+// Owned by ai-service. Weather + Gemini analysis with a rule-based fallback.
+service AiService {
+  // NOT_FOUND when no analysis has been produced yet.
+  rpc GetLatestAnalysis(GetLatestAnalysisRequest) returns (Analysis);
+  rpc ListAnalyses(ListAnalysesRequest) returns (ListAnalysesResponse);
+  // Runs an analysis now. RESOURCE_EXHAUSTED if called more than once per minute.
+  rpc RequestAnalysis(RequestAnalysisRequest) returns (Analysis);
+  rpc GetWeather(GetWeatherRequest) returns (Weather);
+  rpc StreamAnalyses(StreamAnalysesRequest) returns (stream Analysis);
+  // Aggregates of the last 7 or 30 days.
+  rpc GetStats(GetStatsRequest) returns (Stats);
+}
+
+enum RiskLevel {
+  RISK_LEVEL_UNSPECIFIED = 0;
+  RISK_LEVEL_LOW = 1;
+  RISK_LEVEL_MEDIUM = 2;
+  RISK_LEVEL_HIGH = 3;
+}
+
+enum AnalysisSource {
+  ANALYSIS_SOURCE_UNSPECIFIED = 0;
+  ANALYSIS_SOURCE_GEMINI = 1;
+  ANALYSIS_SOURCE_RULES = 2;
+}
+
+// Summary of the data the analysis was based on.
+message AnalysisInput {
+  string crop_name = 1;
+  string mode = 2;
+  int32 current_min = 3;
+  int32 current_max = 4;
+  int32 profile_min = 5;
+  int32 profile_max = 6;
+  bool has_reading = 7;
+  int32 current_moisture = 8;
+  double avg_moisture_24h = 9;
+  int32 min_moisture_24h = 10;
+  int32 max_moisture_24h = 11;
+  bool weather_available = 12;
+  double rain_probability_max_12h = 13;
+  double precipitation_sum_12h = 14;
+  double temperature = 15;
+  double air_humidity = 16;
+  // Added in v1.2: active crop profile (0 when unknown).
+  int64 crop_id = 17;
+}
+
+message Analysis {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  AnalysisSource source = 3;
+  int32 recommended_min = 4;
+  int32 recommended_max = 5;
+  bool pause_for_rain = 6;
+  optional double hours_until_next_irrigation = 7;
+  RiskLevel risk_level = 8;
+  string summary = 9;
+  repeated string recommendations = 10;
+  // True if the recommendation was applied to the irrigation config (mode AI).
+  bool applied = 11;
+  // "SCHEDULED" or "MANUAL".
+  string trigger = 12;
+  AnalysisInput input = 13;
+  // Code of why the rule-based fallback was used (NO_API_KEY, QUOTA_EXCEEDED, TIMEOUT, INVALID_RESPONSE,
+  // AUTH_ERROR, MODEL_NOT_FOUND, UNAVAILABLE, ERROR); empty for Gemini analyses.
+  string fallback_reason = 14;
+  // --- Added in v1.1 (empty / UNSPECIFIED for analyses created before) ---
+  string headline = 15;
+  HealthStatus health_status = 16;
+  NextAction next_action = 17;
+  repeated RecommendationDetail recommendation_details = 18;
+  InputSnapshot input_snapshot = 19;
+  Projection projection = 20;
+  // Sanitized technical detail of the fallback (no secrets).
+  string fallback_detail = 21;
+  // Added in v1.2 (UNSPECIFIED for analyses created before).
+  MoistureLevel moisture_level = 22;
+}
+
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_GOOD = 1;
+  HEALTH_STATUS_ATTENTION = 2;
+  HEALTH_STATUS_CRITICAL = 3;
+}
+
+enum NextAction {
+  NEXT_ACTION_UNSPECIFIED = 0;
+  NEXT_ACTION_IRRIGATE_NOW = 1;
+  NEXT_ACTION_WAIT = 2;
+  NEXT_ACTION_PAUSED_FOR_RAIN = 3;
+  NEXT_ACTION_CHECK_SENSOR = 4;
+}
+
+// Added in v1.2: soil moisture level calculated in Java from the crop range. Drives the message, the traffic
+// light and the next action so they can never contradict the real moisture.
+enum MoistureLevel {
+  MOISTURE_LEVEL_UNSPECIFIED = 0;
+  // sensorOk = false, or no valid reading in the last 5 minutes
+  MOISTURE_LEVEL_SENSOR_ERROR = 1;
+  // moisture < min - 10
+  MOISTURE_LEVEL_VERY_DRY = 2;
+  // min - 10 <= moisture < min
+  MOISTURE_LEVEL_DRY = 3;
+  // min <= moisture <= max
+  MOISTURE_LEVEL_OPTIMAL = 4;
+  // max < moisture <= max + 15
+  MOISTURE_LEVEL_WET = 5;
+  // moisture > max + 15, or moisture >= 95
+  MOISTURE_LEVEL_SATURATED = 6;
+}
+
+enum RecommendationCategory {
+  RECOMMENDATION_CATEGORY_UNSPECIFIED = 0;
+  RECOMMENDATION_CATEGORY_IRRIGATION = 1;
+  RECOMMENDATION_CATEGORY_WEATHER = 2;
+  RECOMMENDATION_CATEGORY_SENSOR = 3;
+  RECOMMENDATION_CATEGORY_CROP = 4;
+}
+
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_HIGH = 1;
+  PRIORITY_MEDIUM = 2;
+  PRIORITY_LOW = 3;
+}
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  ACTION_TYPE_APPLY_THRESHOLDS = 1;
+  ACTION_TYPE_ENABLE_AI_MODE = 2;
+  ACTION_TYPE_DISABLE_RAIN_PAUSE = 3;
+  ACTION_TYPE_ENABLE_RAIN_PAUSE = 4;
+  ACTION_TYPE_CHECK_SENSOR = 5;
+}
+
+enum Confidence {
+  CONFIDENCE_UNSPECIFIED = 0;
+  CONFIDENCE_LOW = 1;
+  CONFIDENCE_MEDIUM = 2;
+  CONFIDENCE_HIGH = 3;
+}
+
+message SuggestedAction {
+  ActionType type = 1;
+  string label = 2;
+}
+
+message RecommendationDetail {
+  string title = 1;
+  string detail = 2;
+  RecommendationCategory category = 3;
+  Priority priority = 4;
+  // Not set when the recommendation has no one-click action.
+  SuggestedAction action = 5;
+}
+
+// Data the analysis used, to explain "why".
+message InputSnapshot {
+  // Not set when there is no valid reading in the last 5 minutes.
+  optional int32 current_moisture = 1;
+  optional double avg_moisture_24h = 2;
+  optional int32 min_moisture_24h = 3;
+  optional int32 max_moisture_24h = 4;
+  optional double drying_rate_per_hour = 5;
+  int32 irrigations_24h = 6;
+  double pump_minutes_24h = 7;
+  optional double rain_probability_12h = 8;
+  optional double precipitation_12h = 9;
+  optional double temperature = 10;
+  optional double air_humidity = 11;
+  string crop_name = 12;
+  int32 crop_min = 13;
+  int32 crop_max = 14;
+  int32 current_min = 15;
+  int32 current_max = 16;
+  string mode = 17;
+  bool sensor_ok = 18;
+  bool rain_pause = 19;
+  // Age of the reading used for current_moisture.
+  optional double reading_age_minutes = 20;
+  // Added in v1.2.
+  int64 crop_id = 21;
+  MoistureLevel moisture_level = 22;
+}
+
+message ProjectionPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  double moisture = 2;
+}
+
+message Projection {
+  repeated ProjectionPoint points = 1;
+  optional double drying_rate_per_hour = 2;
+  // Not set when the projection does not cross the minimum within 24 h.
+  google.protobuf.Timestamp estimated_next_irrigation_at = 3;
+  Confidence confidence = 4;
+}
+
+message GetStatsRequest {
+  // 7 or 30
+  int32 days = 1;
+}
+
+message ThresholdPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  int32 min = 2;
+  int32 max = 3;
+  AnalysisSource source = 4;
+  RiskLevel risk_level = 5;
+}
+
+message DailyMoisture {
+  string date = 1;
+  optional double avg = 2;
+  optional int32 min = 3;
+  optional int32 max = 4;
+  int32 irrigations = 5;
+  double pump_minutes = 6;
+}
+
+message Stats {
+  int32 days = 1;
+  int32 total_analyses = 2;
+  int32 gemini_count = 3;
+  int32 rules_count = 4;
+  int32 risk_low = 5;
+  int32 risk_medium = 6;
+  int32 risk_high = 7;
+  int32 health_good = 8;
+  int32 health_attention = 9;
+  int32 health_critical = 10;
+  int32 rain_pauses = 11;
+  repeated ThresholdPoint threshold_history = 12;
+  repeated DailyMoisture daily_moisture = 13;
+}
+
+message GetLatestAnalysisRequest {}
+
+message ListAnalysesRequest {
+  int32 limit = 1;
+}
+
+message ListAnalysesResponse {
+  repeated Analysis analyses = 1;
+}
+
+message RequestAnalysisRequest {}
+
+message GetWeatherRequest {}
+
+message CurrentWeather {
+  google.protobuf.Timestamp time = 1;
+  double temperature = 2;
+  double relative_humidity = 3;
+  double precipitation = 4;
+  int32 weather_code = 5;
+}
+
+message HourlyForecast {
+  google.protobuf.Timestamp time = 1;
+  double temperature = 2;
+  double relative_humidity = 3;
+  double precipitation_probability = 4;
+  double precipitation = 5;
+}
+
+message Weather {
+  google.protobuf.Timestamp fetched_at = 1;
+  double latitude = 2;
+  double longitude = 3;
+  CurrentWeather current = 4;
+  // Next 12 hours.
+  repeated HourlyForecast hourly = 5;
+  double max_rain_probability_12h = 6;
+  double total_precipitation_12h = 7;
+}
+
+message StreamAnalysesRequest {}
