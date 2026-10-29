@@ -1,0 +1,3 @@
+smartgarden:
+  mqtt:
+    host: ${MQTT_HOST:mosquitto}
