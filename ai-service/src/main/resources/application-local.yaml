@@ -1,0 +1,4 @@
+# Running from the IDE: all targets default to localhost (see application.yaml).
+logging:
+  level:
+    com.smartgarden: DEBUG
