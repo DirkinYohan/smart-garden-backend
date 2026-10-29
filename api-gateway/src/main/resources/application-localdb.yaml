@@ -1,0 +1,9 @@
+# Respaldo sin Internet: el PostgreSQL de docker-compose (perfil "local-db") en vez de Supabase.
+# Una base por servicio (gateway_db), igual que en producción, y su propio esquema "gateway".
+#   IDE:    SPRING_PROFILES_ACTIVE=local,localdb   (antes: docker compose --profile local-db up -d postgres)
+#   Docker: SPRING_PROFILES_ACTIVE=docker,localdb docker compose --profile local-db up --build
+spring:
+  datasource:
+    url: jdbc:postgresql://${LOCAL_DB_HOST:localhost}:5432/gateway_db?currentSchema=gateway
+    username: ${POSTGRES_USER:smartgarden}
+    password: ${POSTGRES_PASSWORD:smartgarden}
