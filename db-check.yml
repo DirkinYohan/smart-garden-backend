@@ -1,0 +1,43 @@
+# Temporal: prueba de conexión (Session pooler 5432) usando las MISMAS variables que los servicios.
+name: sg-dbcheck
+services:
+  gateway:
+    image: postgres:16
+    environment:
+      PGPASSWORD: ${GATEWAY_DB_PASSWORD}
+      PGHOST: ${GATEWAY_DB_HOST}
+      PGUSER: ${GATEWAY_DB_USER}
+      PGDATABASE: postgres
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "8"
+    command: ["psql", "-w", "-c", "select current_database() as db, current_user as usr, inet_server_port() as port"]
+  telemetry:
+    image: postgres:16
+    environment:
+      PGPASSWORD: ${TELEMETRY_DB_PASSWORD}
+      PGHOST: ${TELEMETRY_DB_HOST}
+      PGUSER: ${TELEMETRY_DB_USER}
+      PGDATABASE: postgres
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "8"
+    command: ["psql", "-w", "-c", "select current_database() as db, current_user as usr, inet_server_port() as port"]
+  irrigation:
+    image: postgres:16
+    environment:
+      PGPASSWORD: ${IRRIGATION_DB_PASSWORD}
+      PGHOST: ${IRRIGATION_DB_HOST}
+      PGUSER: ${IRRIGATION_DB_USER}
+      PGDATABASE: postgres
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "8"
+    command: ["psql", "-w", "-c", "select current_database() as db, current_user as usr, inet_server_port() as port"]
+  ai:
+    image: postgres:16
+    environment:
+      PGPASSWORD: ${AI_DB_PASSWORD}
+      PGHOST: ${AI_DB_HOST}
+      PGUSER: ${AI_DB_USER}
+      PGDATABASE: postgres
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "8"
+    command: ["psql", "-w", "-c", "select current_database() as db, current_user as usr, inet_server_port() as port"]
