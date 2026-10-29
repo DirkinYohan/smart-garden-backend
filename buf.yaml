@@ -1,0 +1,20 @@
+version: v2
+
+modules:
+  - path: grpc-contracts/src/main/protobuf
+
+lint:
+  use:
+    - STANDARD
+  except:
+    # Los mensajes son tipos de dominio compartidos por varios RPC (Analysis, IrrigationConfig...). Renombrarlos a
+    # <Rpc>Response obliga a cambiar el código Java de los 4 servicios: se hará como cambio coordinado, no por lint.
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    # El sufijo de versión ya está en el paquete (smartgarden.<servicio>.v1).
+    - PACKAGE_VERSION_SUFFIX
+
+breaking:
+  use:
+    - WIRE_JSON
