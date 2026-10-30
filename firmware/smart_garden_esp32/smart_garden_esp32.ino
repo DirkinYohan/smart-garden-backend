@@ -20,9 +20,15 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#include "secrets.h"
-
 // ================== CONFIGURA ESTO ==================
+// Red WiFi de 2.4 GHz y broker MQTT. Rellena SSID y PASS en tu copia local:
+// el repositorio es público, así que aquí van vacíos a propósito.
+const char* WIFI_SSID = "";
+const char* WIFI_PASS = "";
+const char* MQTT_HOST = "192.168.0.224";
+const uint16_t MQTT_PORT = 1883;
+const char* MQTT_USER = "";   // vacío si Mosquitto es anónimo
+const char* MQTT_PASS = "";
 const char* DEVICE_ID = "esp32-huerta-01";
 // ====================================================
 
