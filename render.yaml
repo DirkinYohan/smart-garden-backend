@@ -16,6 +16,11 @@
 services:
   - type: web
     name: smart-garden-gateway
+    buildFilter:
+      paths:
+        - api-gateway/**
+        - grpc-contracts/**
+        - common/**
     runtime: docker
     plan: starter
     region: oregon
@@ -52,6 +57,11 @@ services:
 
   - type: pserv
     name: smart-garden-telemetry
+    buildFilter:
+      paths:
+        - telemetry-service/**
+        - grpc-contracts/**
+        - common/**
     runtime: docker
     plan: starter
     region: oregon
@@ -85,6 +95,11 @@ services:
 
   - type: pserv
     name: smart-garden-irrigation
+    buildFilter:
+      paths:
+        - irrigation-service/**
+        - grpc-contracts/**
+        - common/**
     runtime: docker
     plan: starter
     region: oregon
@@ -108,6 +123,11 @@ services:
 
   - type: pserv
     name: smart-garden-ai
+    buildFilter:
+      paths:
+        - ai-service/**
+        - grpc-contracts/**
+        - common/**
     runtime: docker
     plan: starter
     region: oregon
