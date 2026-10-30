@@ -8,8 +8,8 @@
 
   Librerías: Adafruit SSD1306, Adafruit GFX, PubSubClient, ArduinoJson (v7)
 
-  Las credenciales de WiFi y la IP del broker viven en secrets.h, que no se
-  versiona (ver secrets.h.example).
+  El WiFi y el broker se configuran abajo, en el bloque "CONFIGURA ESTO".
+  En el repositorio van vacíos: escribe los tuyos en tu copia local.
 */
 
 #include <WiFi.h>
