@@ -50,6 +50,10 @@ const int CRUDO_MAXIMO_VALIDO = 4090;
 
 const int HUMEDAD_CRITICA = 15;
 const unsigned long MANUAL_MAX_SEG   = 120;
+// Tiempos mínimos de marcha y de parada: con lecturas cada 500 ms el relé podía conmutar
+// varias veces por segundo cerca del umbral (desgaste del contacto y golpe de ariete).
+const unsigned long MIN_ON_MS        = 30000;
+const unsigned long MIN_OFF_MS       = 15000;
 const unsigned long LECTURA_MS       = 500;   // lee el sensor 2 veces por segundo
 const unsigned long TELEMETRIA_MS    = 5000;  // envío de "latido" aunque no cambie nada
 const unsigned long RECONEXION_MS    = 10000;
