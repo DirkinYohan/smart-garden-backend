@@ -13,16 +13,39 @@ El ESP32 decide **cuándo** abrir la válvula; el backend solo le manda los umbr
 
 Librerías: **Adafruit SSD1306**, **Adafruit GFX**, **PubSubClient**, **ArduinoJson v7**.
 
-## Credenciales
+## Cómo abrirlo y compilarlo
 
-El WiFi y la IP del broker **no** están en el repositorio:
+El sketch es **un solo archivo** y ya trae la configuración dentro:
 
-```bash
-copy secrets.h.example secrets.h   # y edita tus valores
+```
+firmware/
+└─ smart_garden_esp32/
+   └─ smart_garden_esp32.ino     ← ábrelo con el IDE de Arduino
 ```
 
-`firmware/secrets.h` está en `.gitignore`. Si el broker es anónimo
-(`infra/mosquitto/mosquitto.conf` con `allow_anonymous true`), deja `MQTT_USER` y `MQTT_PASS` vacíos.
+La carpeta se llama igual que el archivo (`smart_garden_esp32`) porque el IDE de Arduino exige esa
+correspondencia para abrir el sketch sin errores. Placa: **ESP32 Dev Module**.
+
+## Credenciales
+
+Al principio del archivo, en el bloque `CONFIGURA ESTO`:
+
+```cpp
+const char* WIFI_SSID = "";              // tu red de 2.4 GHz
+const char* WIFI_PASS = "";              // tu contraseña
+const char* MQTT_HOST = "192.168.0.224"; // IP del PC con Docker
+const uint16_t MQTT_PORT = 1883;
+const char* MQTT_USER = "";              // vacío si Mosquitto es anónimo
+const char* MQTT_PASS = "";
+const char* DEVICE_ID = "esp32-huerta-01";
+```
+
+> El repositorio es público: `WIFI_SSID` y `WIFI_PASS` van **vacíos** en lo que se publica. Rellénalos en
+> tu copia y evita subirlos. Para que Git no te los vuelva a pedir en cada `git status`:
+>
+> ```bash
+> git update-index --skip-worktree firmware/smart_garden_esp32/smart_garden_esp32.ino
+> ```
 
 ## Calibración del sensor
 
