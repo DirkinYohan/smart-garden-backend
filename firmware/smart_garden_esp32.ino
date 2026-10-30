@@ -36,9 +36,17 @@ const int PIN_SENSOR_VCC = 25;
 const int PIN_OLED_VCC   = 27;
 
 // Calibración del sensor (ajústala)
+// Calibración del sensor (ajústala con el monitor serie):
+//   - al aire (seco)  -> VALOR_SECO
+//   - en agua         -> VALOR_MOJADO
 const int VALOR_SECO   = 4095;
 const int VALOR_MOJADO = 1500;
-const int CRUDO_MINIMO_VALIDO = 400;
+
+// Ventana de validez del ADC, la misma que aplica el backend (TelemetryPayloadParser):
+// por debajo del raíl bajo el sensor está en corto o desconectado; por encima del alto
+// el ADC satura y la lectura no distingue "seco" de "sin sensor".
+const int CRUDO_MINIMO_VALIDO = 10;
+const int CRUDO_MAXIMO_VALIDO = 4090;
 
 const int HUMEDAD_CRITICA = 15;
 const unsigned long MANUAL_MAX_SEG   = 120;
