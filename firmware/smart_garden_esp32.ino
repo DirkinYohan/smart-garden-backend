@@ -35,7 +35,6 @@ const int PIN_RELE       = 26;
 const int PIN_SENSOR_VCC = 25;
 const int PIN_OLED_VCC   = 27;
 
-// Calibración del sensor (ajústala)
 // Calibración del sensor (ajústala con el monitor serie):
 //   - al aire (seco)  -> VALOR_SECO
 //   - en agua         -> VALOR_MOJADO
