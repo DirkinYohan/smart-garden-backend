@@ -14,9 +14,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Writes 401 / 403 with the same JSON body as every other API error.
- */
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint, AccessDeniedHandler {
 

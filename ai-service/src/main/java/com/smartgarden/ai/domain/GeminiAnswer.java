@@ -3,10 +3,6 @@ package com.smartgarden.ai.domain;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.List;
 
-/**
- * Structured output requested from Gemini (Spring AI derives the JSON schema from this record). Deterministic
- * values (projection, next irrigation time, health, next action) are computed in Java, not here.
- */
 public record GeminiAnswer(
 		@JsonPropertyDescription("Humedad de suelo mínima recomendada en %, entero entre 10 y 90") Integer recommendedMin,
 		@JsonPropertyDescription("Humedad de suelo máxima recomendada en %, entero entre 10 y 90, al menos 10 puntos sobre el mínimo") Integer recommendedMax,

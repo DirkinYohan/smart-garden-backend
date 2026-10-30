@@ -22,18 +22,11 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Asks Gemini (Spring AI {@link ChatClient}) for a structured {@link GeminiAnswer}. Spring AI and SDK retries are
- * disabled; instead, when the configured model is overloaded (503), out of quota (429) or gone (404), the same
- * request goes once to each of {@code smartgarden.ai.gemini-fallback-models} (other models have their own capacity
- * and free-tier quota). All attempts share the {@code smartgarden.ai.gemini-timeout} budget.
- */
 @Component
 public class GeminiAnalyzer {
 
 	private static final Logger log = LoggerFactory.getLogger(GeminiAnalyzer.class);
 
-	/** Failures for which another model may still answer. */
 	private static final Set<FallbackReason> TRY_NEXT_MODEL = Set.of(FallbackReason.UNAVAILABLE,
 			FallbackReason.QUOTA_EXCEEDED, FallbackReason.MODEL_NOT_FOUND);
 
@@ -92,10 +85,6 @@ public class GeminiAnalyzer {
 		return apiKey != null && !apiKey.isBlank() && chatClientBuilder.getIfAvailable() != null;
 	}
 
-	/**
-	 * @throws GeminiNotConfiguredException if there is no API key
-	 * @throws RuntimeException on API errors (quota, auth, model, network, parsing) or timeout
-	 */
 	public GeminiAnswer recommend(AnalysisInputData input, MoistureLevel level, boolean rainExpected,
 			Set<ActionType> availableActions) {
 		if (!isConfigured()) {
@@ -107,7 +96,7 @@ public class GeminiAnalyzer {
 		}
 		long deadline = System.currentTimeMillis() + props.geminiTimeout().toMillis();
 		List<String> models = new ArrayList<>();
-		models.add(null); // configured model with the default options
+		models.add(null);
 		props.geminiFallbackModels().stream()
 			.filter(m -> m != null && !m.isBlank() && !m.equals(primaryModel))
 			.distinct()
@@ -140,7 +129,6 @@ public class GeminiAnalyzer {
 						new TimeoutException());
 	}
 
-	/** One model call; {@code model == null} uses the configured model and options. */
 	private GeminiAnswer call(String model, String userPrompt, long timeoutMillis) {
 		long start = System.currentTimeMillis();
 		CompletableFuture<GeminiAnswer> call = CompletableFuture.supplyAsync(() -> {
@@ -175,7 +163,6 @@ public class GeminiAnalyzer {
 		return model == null ? primaryModel : model;
 	}
 
-	/** Plain "key: value" lines: no braces, because ChatClient renders user text as a template. */
 	static String userPrompt(AnalysisInputData in, MoistureLevel level, boolean rainExpected,
 			Set<ActionType> availableActions) {
 		StringBuilder sb = new StringBuilder("Datos actuales de la huerta:\n");
@@ -220,7 +207,7 @@ public class GeminiAnalyzer {
 		}
 		line(sb, "Acciones disponibles para \"action\"", availableActions.isEmpty() ? "ninguna (usa null)"
 				: availableActions.stream().map(a -> a.name() + " (" + a.label() + ")").collect(Collectors.joining(", ")));
-		// Level first in a clearly marked block: the model must describe THIS state, not guess it.
+
 		sb.append("\nNivel de humedad calculado por el sistema (obligatorio respetarlo): ")
 			.append(level.name())
 			.append(" (")
@@ -231,7 +218,6 @@ public class GeminiAnalyzer {
 		return sb.toString().replace("{", "(").replace("}", ")");
 	}
 
-	/** Qué debe decir el mensaje para cada nivel (evita que el modelo invente el estado del suelo). */
 	static String guidance(MoistureLevel level) {
 		return switch (level) {
 			case SENSOR_ERROR -> "no hay datos válidos del sensor: dilo y no afirmes ninguna humedad";

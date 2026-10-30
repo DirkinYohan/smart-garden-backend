@@ -7,10 +7,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Consultas de usuario para la capa web. Mantiene el acceso a datos fuera de los controladores (controller →
- * service → repository).
- */
 @Service
 @Transactional(readOnly = true)
 public class UserQueryService {
@@ -21,7 +17,6 @@ public class UserQueryService {
 		this.users = users;
 	}
 
-	/** Datos del usuario autenticado. */
 	public MeResponse me(String username) {
 		AppUserEntity user = require(username);
 		return new MeResponse(user.getUsername(), user.getRole(), user.isMustChangePassword(),

@@ -1,12 +1,5 @@
 package com.smartgarden.ai.domain;
 
-/**
- * Everything an analysis is based on. Stored (as JSON) with the analysis and sent to Gemini.
- * <p>
- * {@code hasReading} means "a VALID reading (sensorOk, plausible raw value) not older than 5 minutes";
- * {@code currentMoisture} is only meaningful when it is true. The fields after {@code airHumidity} were added in
- * v1.1, {@code cropId} in v1.2; they are null in analyses stored before.
- */
 public record AnalysisInputData(
 		String cropName,
 		String mode,
@@ -29,26 +22,24 @@ public record AnalysisInputData(
 		double precipitationSum12h,
 		double temperature,
 		double airHumidity,
-		// v1.1
+
 		Boolean sensorFault,
 		Double readingAgeMinutes,
 		Double dryingRatePerHour,
 		Integer irrigations24h,
 		Double pumpMinutes24h,
 		Boolean rainPause,
-		// v1.2
+
 		Long cropId) {
 
 	public static final int DEFAULT_MIN = 30;
 
 	public static final int DEFAULT_MAX = 70;
 
-	/** Current moisture only if there is a valid recent reading; never an invented 0 %. */
 	public Integer validMoisture() {
 		return hasReading ? currentMoisture : null;
 	}
 
-	/** The latest reading is recent but invalid (sensor disconnected / failing). */
 	public boolean isSensorFault() {
 		return Boolean.TRUE.equals(sensorFault);
 	}
@@ -57,12 +48,10 @@ public record AnalysisInputData(
 		return Boolean.TRUE.equals(rainPause);
 	}
 
-	/** True when the crop profile defines a usable range. */
 	public boolean hasProfileRange() {
 		return profileMin > 0 && profileMax > profileMin;
 	}
 
-	/** Minimum the ESP32 is using (config), else the crop profile, else 30 %. */
 	public int minThreshold() {
 		if (configAvailable && currentMax > 0 && currentMin < currentMax) {
 			return currentMin;
@@ -77,7 +66,6 @@ public record AnalysisInputData(
 		return hasProfileRange() ? profileMax : DEFAULT_MAX;
 	}
 
-	/** Rain is expected when the max probability in 12 h reaches the threshold and some precipitation is forecast. */
 	public boolean rainExpected(double probabilityThreshold) {
 		return weatherAvailable && rainProbabilityMax12h >= probabilityThreshold && precipitationSum12h > 0;
 	}

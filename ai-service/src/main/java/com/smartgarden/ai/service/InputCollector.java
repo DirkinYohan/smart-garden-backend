@@ -20,14 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Gathers the analysis input from telemetry, irrigation and weather. Each source is optional: a failing source is
- * logged and the analysis continues with what is available.
- * <p>
- * The current moisture always comes from {@code TelemetryService.GetCurrentStatus}, and only from a VALID reading
- * (sensorOk and a raw value not stuck at an ADC rail) received in the last 5 minutes. Otherwise the analysis says
- * there is no reading instead of using a stale or invalid value (the "0 %" bug).
- */
 @Component
 public class InputCollector {
 
@@ -35,7 +27,6 @@ public class InputCollector {
 
 	public static final Duration MAX_READING_AGE = Duration.ofMinutes(5);
 
-	/** Same rails as telemetry-service (12-bit ADC): defense in depth for readings stored before the fix. */
 	static final int ADC_RAIL_LOW = 10;
 
 	static final int ADC_RAIL_HIGH = 4000;
@@ -155,7 +146,6 @@ public class InputCollector {
 		return null;
 	}
 
-	/** Input + raw data needed for the deterministic computations (projection, drying rate). */
 	public record AnalysisContext(AnalysisInputData input, WeatherSnapshot weather, List<Sample> samples,
 			Instant now) {
 	}

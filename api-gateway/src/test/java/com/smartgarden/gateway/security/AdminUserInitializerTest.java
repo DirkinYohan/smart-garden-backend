@@ -24,7 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/** Bootstrap con credenciales de un solo uso. */
 @ExtendWith(MockitoExtension.class)
 class AdminUserInitializerTest {
 

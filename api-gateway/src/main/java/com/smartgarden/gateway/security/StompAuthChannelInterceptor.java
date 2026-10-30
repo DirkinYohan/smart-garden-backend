@@ -12,11 +12,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
-/**
- * Authenticates the STOMP CONNECT frame with {@code Authorization: Bearer <jwt>} (native header). It applies the same
- * rules as the REST filter: the token's {@code tv} must match the user's current token_version, and a user who must
- * change the password cannot open the WebSocket. Only subscriptions to the known read-only topics are allowed.
- */
 @Component
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
 

@@ -67,7 +67,7 @@ class TelemetryPayloadParserTest {
 
 	@Test
 	void readingStuckAtAnAdcRailIsMarkedInvalid() {
-		// Real ESP32 payload with the sensor disconnected: raw 4095 → moisture 0, but sensorOk true
+
 		String disconnected = """
 				{"deviceId":"esp32-huerta-01","raw":4095,"moisture":0,"pumpOn":false,"sensorOk":true,
 				 "mode":"MANUAL","minMoisture":45,"maxMoisture":75,"rainPause":true,"uptimeMs":208179}
@@ -78,9 +78,9 @@ class TelemetryPayloadParserTest {
 		assertThat(parser.parse(disconnected, NOW).sensorOk()).isFalse();
 		assertThat(parser.parse(shorted, NOW).sensorOk()).isFalse();
 		assertThat(parser.parse(normal, NOW).sensorOk()).isTrue();
-		// near the rail (seen in production: raw 4089 reported as 0 %)
+
 		assertThat(parser.parse(disconnected.replace("\"raw\":4095", "\"raw\":4089"), NOW).sensorOk()).isFalse();
-		// dry soil is still a valid reading
+
 		assertThat(parser.parse(normal.replace("\"raw\":2479", "\"raw\":3450"), NOW).sensorOk()).isTrue();
 	}
 

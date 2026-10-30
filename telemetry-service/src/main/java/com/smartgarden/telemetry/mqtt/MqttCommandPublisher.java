@@ -24,10 +24,6 @@ public class MqttCommandPublisher {
 		this.props = props;
 	}
 
-	/**
-	 * Publishes synchronously.
-	 * @throws MessagingException if the broker is not reachable
-	 */
 	public String publish(DeviceCommand command) {
 		outbound.handleMessage(MessageBuilder.withPayload(command.payload())
 			.setHeader(MqttHeaders.TOPIC, props.commandsTopic())

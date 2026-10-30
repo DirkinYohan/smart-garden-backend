@@ -19,9 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Aggregates of the analyses of the last 7 or 30 days, plus the daily moisture series from telemetry-service.
- */
 @Service
 public class StatsService {
 

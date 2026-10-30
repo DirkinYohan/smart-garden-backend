@@ -24,7 +24,7 @@ class MoistureProjectorTest {
 		assertThat(p.points()).hasSize(24);
 		assertThat(p.points().getFirst().timestamp()).isEqualTo(NOW.plus(Duration.ofHours(1)));
 		assertThat(p.points().getFirst().moisture()).isEqualTo(58.0);
-		// 60 − 2 h⁻¹ · t = 45  →  t = 7.5 h
+
 		assertThat(p.estimatedNextIrrigationAt()).isEqualTo(NOW.plus(Duration.ofMinutes(450)));
 		assertThat(MoistureProjector.hoursUntil(p, NOW)).isEqualTo(7.5);
 		assertThat(p.confidence()).isEqualTo(Confidence.HIGH);
@@ -41,11 +41,10 @@ class MoistureProjectorTest {
 
 		Projection p = MoistureProjector.project(50, new DryingRate(-1.0, Confidence.MEDIUM, 20), weather, 45, NOW);
 
-		// each rainy hour adds min(2.5·4, 5) = 5 points, capped at 15 in total
 		assertThat(p.points().get(0).moisture()).isEqualTo(54.0);
 		assertThat(p.points().get(2).moisture()).isEqualTo(62.0);
 		assertThat(p.points().get(3).moisture()).isEqualTo(61.0);
-		// the rain delays the next irrigation: 62 % at +3 h, then −1/h reaches 45 % at +20 h
+
 		assertThat(p.estimatedNextIrrigationAt()).isEqualTo(NOW.plus(Duration.ofHours(20)));
 	}
 

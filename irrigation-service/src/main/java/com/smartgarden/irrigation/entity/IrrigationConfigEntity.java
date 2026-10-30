@@ -13,9 +13,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
-/**
- * Single-row table (id = 1): the garden has one irrigation configuration.
- */
 @Entity
 @Table(name = "irrigation_config")
 public class IrrigationConfigEntity {

@@ -23,16 +23,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Relays the gRPC server streams to STOMP topics:
- * <ul>
- * <li>StreamTelemetry → /topic/telemetry</li>
- * <li>StreamDeviceStatus → /topic/device-status</li>
- * <li>StreamConfigChanges → /topic/config</li>
- * <li>StreamAnalyses → /topic/analysis</li>
- * </ul>
- * Calls use {@code withWaitForReady()} so they wait for a restarting service instead of failing immediately.
- */
 @Component
 public class StreamRelay {
 

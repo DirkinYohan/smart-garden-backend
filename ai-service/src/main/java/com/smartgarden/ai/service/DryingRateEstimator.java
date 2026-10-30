@@ -8,21 +8,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Soil drying rate (moisture points per hour) by linear regression over the valid readings of the last 12 hours.
- * <p>
- * Readings taken while the pump is on, and during the 15 minutes after it stops, are excluded. The remaining
- * readings form "dry-down segments" (separated by irrigations), so a single straight line across them would be
- * distorted by the jumps. The slope is therefore a pooled within-segment least-squares estimate:
- *
- * <pre>
- *   slope = Σ_seg Σ_i (t_i − t̄_seg)(m_i − m̄_seg) / Σ_seg Σ_i (t_i − t̄_seg)²      (t in hours)
- * </pre>
- *
- * with R² computed with the same segment means. Confidence: HIGH with ≥ 20 readings spanning ≥ 6 h and R² ≥ 0.6;
- * MEDIUM with ≥ 8 readings spanning ≥ 3 h and R² ≥ 0.3; otherwise LOW. With fewer than 4 usable readings or less
- * than 1 h of data the rate is unknown. The result is clamped to [−10, +5] points/h.
- */
 public final class DryingRateEstimator {
 
 	static final Duration WINDOW = Duration.ofHours(12);

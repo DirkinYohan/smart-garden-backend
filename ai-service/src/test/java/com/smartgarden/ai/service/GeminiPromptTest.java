@@ -8,7 +8,6 @@ import com.smartgarden.ai.domain.MoistureLevel;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** El prompt debe llevar la humedad real y el nivel ya calculado, para que el modelo no invente el estado. */
 class GeminiPromptTest {
 
 	private static final Set<ActionType> ACTIONS = Set.of(ActionType.CHECK_SENSOR);

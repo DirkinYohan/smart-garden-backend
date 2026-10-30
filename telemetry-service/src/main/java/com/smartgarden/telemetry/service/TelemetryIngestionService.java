@@ -10,10 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * Entry point for every valid reading: throttled persistence, irrigation-event derivation, device status and
- * real-time fan-out.
- */
 @Service
 public class TelemetryIngestionService {
 
@@ -65,7 +61,6 @@ public class TelemetryIngestionService {
 		telemetrySubscribers.publish(reading);
 	}
 
-	/** Latest reading in memory, falling back to the database after a restart. */
 	public Optional<TelemetrySnapshot> latest() {
 		TelemetrySnapshot current = latest;
 		if (current != null) {
@@ -74,7 +69,6 @@ public class TelemetryIngestionService {
 		return repository.findTopByOrderByReceivedAtDesc().map(TelemetryReadingEntity::toSnapshot);
 	}
 
-	/** Latest reading with sensorOk = true (in memory, falling back to the database). */
 	public Optional<TelemetrySnapshot> latestValid() {
 		TelemetrySnapshot current = latestValid;
 		if (current != null) {

@@ -23,10 +23,6 @@ import com.smartgarden.contracts.telemetry.v1.TelemetryServiceGrpc.TelemetryServ
 import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
-/**
- * gRPC calls to telemetry-service and irrigation-service.
- * @throws io.grpc.StatusRuntimeException on any failure
- */
 @Component
 public class GardenDataClient {
 
@@ -53,7 +49,6 @@ public class GardenDataClient {
 			.getHistory(GetHistoryRequest.newBuilder().setRange(HistoryRange.HISTORY_RANGE_24H).build());
 	}
 
-	/** Valid readings of the last hours, oldest first. */
 	public List<Sample> recentSamples(int hours) {
 		return telemetry.withDeadlineAfter(deadlineMs(), TimeUnit.MILLISECONDS)
 			.getRecentSamples(GetRecentSamplesRequest.newBuilder().setHours(hours).build())
@@ -64,7 +59,6 @@ public class GardenDataClient {
 			.toList();
 	}
 
-	/** Most recent irrigation events, newest first. */
 	public List<IrrigationEvent> irrigationEvents(int limit) {
 		return telemetry.withDeadlineAfter(deadlineMs(), TimeUnit.MILLISECONDS)
 			.getIrrigationEvents(GetIrrigationEventsRequest.newBuilder().setLimit(limit).build())

@@ -32,16 +32,12 @@ public class AppUserEntity {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
-	// --- credenciales seguras (V2) ---
-
-	/** true cuando la contraseña es inicial y el usuario debe cambiarla antes de usar la aplicación. */
 	@Column(name = "must_change_password", nullable = false)
 	private boolean mustChangePassword;
 
 	@Column(name = "password_changed_at")
 	private Instant passwordChangedAt;
 
-	/** Se incrementa al cambiar o restablecer la contraseña: invalida los JWT anteriores. */
 	@Column(name = "token_version", nullable = false)
 	private int tokenVersion;
 
@@ -70,7 +66,6 @@ public class AppUserEntity {
 		this.failedLoginAttempts = 0;
 	}
 
-	/** Cambio hecho por el propio usuario: deja de ser obligatorio y cierra las demás sesiones. */
 	public void changePassword(String newPasswordHash, Instant now) {
 		this.passwordHash = newPasswordHash;
 		this.mustChangePassword = false;
@@ -80,13 +75,11 @@ public class AppUserEntity {
 		this.lockedUntil = null;
 	}
 
-	/** Restablecimiento por recuperación (ADMIN_RESET_PASSWORD): vuelve a ser obligatorio cambiarla. */
 	public void resetPassword(String newPasswordHash, Instant now) {
 		changePassword(newPasswordHash, now);
 		this.mustChangePassword = true;
 	}
 
-	/** Cuenta un intento fallido; al llegar a {@code maxAttempts} bloquea la cuenta. */
 	public void registerFailedAttempt(Instant now, int maxAttempts, Duration lockDuration) {
 		this.failedLoginAttempts++;
 		if (this.failedLoginAttempts >= maxAttempts) {
@@ -104,7 +97,6 @@ public class AppUserEntity {
 		return lockedUntil != null && now.isBefore(lockedUntil);
 	}
 
-	/** Minutos que faltan para poder volver a intentar (mínimo 1 mientras siga bloqueada). */
 	public long lockedMinutesRemaining(Instant now) {
 		if (!isLocked(now)) {
 			return 0;

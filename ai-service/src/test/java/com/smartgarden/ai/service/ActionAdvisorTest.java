@@ -29,7 +29,7 @@ class ActionAdvisorTest {
 		assertThat(ActionAdvisor.candidates(input().rain(10, 0).rainPause(true).build(), RAIN))
 			.contains(ActionType.DISABLE_RAIN_PAUSE)
 			.doesNotContain(ActionType.ENABLE_RAIN_PAUSE);
-		// pause on and rain expected: nothing to change
+
 		assertThat(ActionAdvisor.candidates(input().rain(90, 9).rainPause(true).build(), RAIN))
 			.doesNotContain(ActionType.ENABLE_RAIN_PAUSE, ActionType.DISABLE_RAIN_PAUSE);
 	}

@@ -13,21 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Hourly soil-moisture projection for the next 24 hours.
- *
- * <pre>
- *   m(0)   = current valid moisture
- *   m(k)   = clamp( m(k−1) + r·Δt(k) + rain(k), 0, 100 )          k = 1..24, points at the next full hours
- *   r      = drying rate (points/h, usually negative); 0 if unknown
- *   rain(k)= min(2.5 · P(k), 5)   if probability(k) ≥ 70 % and P(k) > 0 mm   (P = forecast precipitation of that hour)
- *            the accumulated rain gain over the 24 h is capped at 15 points
- * </pre>
- *
- * The forecast covers 12 h; beyond it no rain is assumed. The estimated next irrigation is the moment the projection
- * crosses the minimum threshold (linear interpolation between points); "now" if the soil is already below it; null if
- * it does not happen within 24 h. Confidence is the drying-rate confidence (LOW when the rate is unknown).
- */
 public final class MoistureProjector {
 
 	static final int HOURS = 24;
@@ -43,10 +28,6 @@ public final class MoistureProjector {
 	private MoistureProjector() {
 	}
 
-	/**
-	 * @param currentMoisture valid current moisture, or null (then no projection is possible)
-	 * @param weather forecast, or null
-	 */
 	public static Projection project(Integer currentMoisture, DryingRate rate, WeatherSnapshot weather,
 			int minThreshold, Instant now) {
 		if (currentMoisture == null) {
@@ -68,7 +49,7 @@ public final class MoistureProjector {
 			Instant time = hour.plus(Duration.ofHours(k));
 			double dtHours = Duration.between(previousTime, time).toSeconds() / 3600.0;
 			double gain = 0;
-			// rain falling during [time − 1 h, time)
+
 			WeatherSnapshot.Hourly h = forecastByHour.get(time.minus(Duration.ofHours(1)));
 			if (h != null && h.precipitationProbability() >= RAIN_PROBABILITY && h.precipitation() > 0
 					&& rainTotal < MAX_RAIN_GAIN_TOTAL) {
@@ -89,7 +70,6 @@ public final class MoistureProjector {
 		return new Projection(List.copyOf(points), rate.ratePerHour(), estimated, confidence);
 	}
 
-	/** Hours from now until the estimated next irrigation (0.1 h precision), or null. */
 	public static Double hoursUntil(Projection projection, Instant now) {
 		Instant at = projection.estimatedNextIrrigationAt();
 		if (at == null) {

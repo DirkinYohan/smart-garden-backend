@@ -19,7 +19,7 @@ class DryingRateEstimatorTest {
 	@Test
 	void steadyDryingGivesHighConfidence() {
 		List<Sample> samples = new ArrayList<>();
-		// every 15 min for 10 h, -2 points per hour
+
 		for (int i = 0; i <= 40; i++) {
 			Instant t = NOW.minus(Duration.ofMinutes(600 - 15L * i));
 			samples.add(new Sample(t, (int) Math.round(70 - 0.5 * i), false));
@@ -34,20 +34,19 @@ class DryingRateEstimatorTest {
 	@Test
 	void irrigationJumpsAndPumpPeriodsAreExcluded() {
 		List<Sample> samples = new ArrayList<>();
-		// segment 1: 4 h drying 60 → 52, pump on, 15 min after, segment 2: drying 75 → 67
+
 		for (int i = 0; i <= 16; i++) {
 			samples.add(new Sample(NOW.minus(Duration.ofMinutes(600 - 15L * i)), 60 - i / 2, false));
 		}
 		samples.add(new Sample(NOW.minus(Duration.ofMinutes(345)), 52, true));
 		samples.add(new Sample(NOW.minus(Duration.ofMinutes(340)), 70, true));
-		samples.add(new Sample(NOW.minus(Duration.ofMinutes(330)), 76, false)); // within 15 min after the pump
+		samples.add(new Sample(NOW.minus(Duration.ofMinutes(330)), 76, false));
 		for (int i = 0; i <= 16; i++) {
 			samples.add(new Sample(NOW.minus(Duration.ofMinutes(300 - 15L * i)), 75 - i / 2, false));
 		}
 
 		DryingRate rate = DryingRateEstimator.estimate(samples, NOW);
 
-		// both segments dry at ~2 points/h; a single regression across the jump would give a positive slope
 		assertThat(rate.ratePerHour()).isNegative().isCloseTo(-2.0, within(0.3));
 	}
 

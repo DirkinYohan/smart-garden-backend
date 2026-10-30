@@ -12,9 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Derives irrigation events from pumpOn transitions: false→true opens an event, true→false closes it.
- */
 @Service
 public class IrrigationEventService {
 
@@ -22,7 +19,6 @@ public class IrrigationEventService {
 
 	private final IrrigationEventRepository repository;
 
-	/** Last known pump state per device; absent means "not loaded yet". */
 	private final Map<String, Boolean> lastPumpState = new ConcurrentHashMap<>();
 
 	public IrrigationEventService(IrrigationEventRepository repository) {
@@ -35,7 +31,7 @@ public class IrrigationEventService {
 		PumpTransition transition = PumpTransition.detect(previous, reading.pumpOn());
 		switch (transition) {
 			case STARTED -> {
-				// Defensive: close a dangling event (e.g. missed OFF reading) before opening a new one.
+
 				repository.findFirstByDeviceIdAndEndedAtIsNullOrderByStartedAtDesc(reading.deviceId())
 					.ifPresent(open -> open.close(reading.receivedAt(), reading.moisture()));
 				IrrigationEventEntity event = repository.save(IrrigationEventEntity.open(reading.deviceId(),
@@ -56,7 +52,6 @@ public class IrrigationEventService {
 		return transition;
 	}
 
-	/** After a restart, an open event in the DB means the pump was on. */
 	private Boolean initialState(String deviceId) {
 		return repository.findFirstByDeviceIdAndEndedAtIsNullOrderByStartedAtDesc(deviceId).isPresent() ? true
 				: null;

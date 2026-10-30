@@ -6,9 +6,6 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Minimal in-memory fan-out used to feed the gRPC server streams. A failing subscriber is removed.
- */
 public class Subscribers<T> {
 
 	private static final Logger log = LoggerFactory.getLogger(Subscribers.class);

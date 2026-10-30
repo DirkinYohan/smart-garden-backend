@@ -6,10 +6,6 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 
-/**
- * Rechaza las llamadas gRPC que no traen el testigo interno correcto: solo los otros servicios del despliegue pueden
- * invocar este servicio, aunque alguien alcance el puerto dentro de la red.
- */
 public class InternalTokenServerInterceptor implements ServerInterceptor {
 
 	private final String expected;

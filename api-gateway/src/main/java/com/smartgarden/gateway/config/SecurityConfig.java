@@ -21,14 +21,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Stateless JWT security. Everything under /api/v1 requires a token except the login. The WebSocket handshake is
- * open; the JWT is checked on the STOMP CONNECT frame (see StompAuthChannelInterceptor).
- */
 @Configuration
 public class SecurityConfig {
 
-	/** Factor 12 según la política de credenciales (más costoso de romper por fuerza bruta). */
 	private static final int BCRYPT_STRENGTH = 12;
 
 	@Bean

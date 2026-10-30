@@ -12,16 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Bootstrap del administrador con credenciales de un solo uso:
- * <ul>
- * <li><b>Base de datos vacía:</b> crea el admin con {@code must_change_password = true}; si ADMIN_PASSWORD está vacía
- * genera una contraseña aleatoria de 16 caracteres y la muestra UNA sola vez en el log.</li>
- * <li><b>Ya hay usuarios:</b> no toca nada y avisa de que ADMIN_PASSWORD ya no se usa.</li>
- * <li><b>ADMIN_RESET_PASSWORD:</b> restablece la contraseña (recuperación), vuelve a obligar el cambio e invalida los
- * tokens anteriores; luego pide quitar la variable.</li>
- * </ul>
- */
 @Component
 public class AdminUserInitializer implements ApplicationRunner {
 

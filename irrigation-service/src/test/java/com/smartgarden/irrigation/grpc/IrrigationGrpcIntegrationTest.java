@@ -39,10 +39,6 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-/**
- * Runs the real gRPC service in-process (Spring gRPC test transport) against H2 + Flyway. telemetry-service is
- * mocked.
- */
 @SpringBootTest
 @AutoConfigureTestGrpcTransport
 @ActiveProfiles("test")
@@ -64,7 +60,7 @@ class IrrigationGrpcIntegrationTest {
 			channel = channels.createChannel("irrigation");
 		}
 		stub = IrrigationServiceGrpc.newBlockingStub(channel);
-		// Reset to the seeded defaults: AUTO + "Genérico" (30-70).
+
 		long generic = crop("Genérico").getId();
 		stub.updateConfig(UpdateConfigRequest.newBuilder()
 			.setMode(IrrigationMode.IRRIGATION_MODE_AUTO)
@@ -163,7 +159,7 @@ class IrrigationGrpcIntegrationTest {
 				public void onCompleted() {
 				}
 			});
-		Thread.sleep(200); // let the subscription register
+		Thread.sleep(200);
 
 		stub.updateConfig(UpdateConfigRequest.newBuilder().setRainPause(true).build());
 
@@ -205,12 +201,10 @@ class IrrigationGrpcIntegrationTest {
 			.setMaxMoisture(65)
 			.build());
 
-		// Otro cambio (pausa por lluvia) no toca los umbrales elegidos a mano
 		IrrigationConfig kept = stub.updateConfig(UpdateConfigRequest.newBuilder().setRainPause(true).build());
 		assertThat(kept.getMinMoisture()).isEqualTo(55);
 		assertThat(kept.getMaxMoisture()).isEqualTo(65);
 
-		// Cambiar de cultivo sí aplica el rango del perfil nuevo
 		IrrigationConfig changed = stub
 			.updateConfig(UpdateConfigRequest.newBuilder().setCropProfileId(crop("Fresa").getId()).build());
 		assertThat(changed.getMinMoisture()).isEqualTo(50);
@@ -231,7 +225,7 @@ class IrrigationGrpcIntegrationTest {
 			.build());
 
 		assertThat(applied.getApplied()).isTrue();
-		// Tomate 40-70: la IA solo puede moverse dentro de 30-80
+
 		assertThat(applied.getConfig().getMinMoisture()).isEqualTo(30);
 		assertThat(applied.getConfig().getMaxMoisture()).isEqualTo(45);
 	}

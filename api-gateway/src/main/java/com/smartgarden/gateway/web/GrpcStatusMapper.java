@@ -3,9 +3,6 @@ package com.smartgarden.gateway.web;
 import io.grpc.Status;
 import org.springframework.http.HttpStatus;
 
-/**
- * gRPC status code → HTTP status.
- */
 public final class GrpcStatusMapper {
 
 	private GrpcStatusMapper() {
@@ -26,10 +23,6 @@ public final class GrpcStatusMapper {
 		};
 	}
 
-	/**
-	 * Message for the client: the description sent by the service, or a generic Spanish text. Transport failures
-	 * (service down, connection refused) carry a local cause and a technical description, so they get the generic one.
-	 */
 	public static String message(Status status) {
 		if (status.getCause() == null && status.getDescription() != null && !status.getDescription().isBlank()
 				&& status.getCode() != Status.Code.INTERNAL && status.getCode() != Status.Code.UNKNOWN) {

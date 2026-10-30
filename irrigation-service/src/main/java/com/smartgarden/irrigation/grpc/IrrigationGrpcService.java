@@ -20,9 +20,6 @@ import com.smartgarden.irrigation.service.IrrigationConfigService.ManualResult;
 import io.grpc.stub.StreamObserver;
 import org.springframework.stereotype.Service;
 
-/**
- * gRPC adapter. Exceptions are translated to gRPC status codes by {@link GrpcErrorHandler}.
- */
 @Service
 public class IrrigationGrpcService extends IrrigationServiceGrpc.IrrigationServiceImplBase {
 

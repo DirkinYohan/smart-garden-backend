@@ -30,7 +30,7 @@ public class AppConfig {
 		return IrrigationServiceGrpc.newBlockingStub(channels.createChannel("irrigation"));
 	}
 
-	/** Async stub: needed for the {@code StreamConfigChanges} server stream (immediate analysis on config change). */
+	
 	@Bean
 	IrrigationServiceGrpc.IrrigationServiceStub irrigationAsyncStub(GrpcChannelFactory channels) {
 		return IrrigationServiceGrpc.newStub(channels.createChannel("irrigation"));

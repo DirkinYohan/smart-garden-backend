@@ -7,18 +7,9 @@ import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Parses and validates the ESP32 telemetry JSON. Throws {@link InvalidPayloadException} for anything that does not
- * respect the MQTT contract.
- */
 @Component
 public class TelemetryPayloadParser {
 
-	/**
-	 * The ESP32 ADC is 12-bit (0–4095). A raw value at (or within ~2 % of) either rail means the sensor is disconnected, out of
-	 * the soil or shorted (it maps to 0 % / 100 % moisture), so the reading is marked as invalid even if the
-	 * firmware reported sensorOk = true.
-	 */
 	public static final int ADC_RAIL_LOW = 10;
 
 	public static final int ADC_RAIL_HIGH = 4000;
@@ -81,7 +72,6 @@ public class TelemetryPayloadParser {
 				uptimeMs, receivedAt);
 	}
 
-	/** False when the raw ADC value is stuck at a rail (see {@link #ADC_RAIL_HIGH}). */
 	public static boolean isPlausibleRaw(int raw) {
 		return raw > ADC_RAIL_LOW && raw < ADC_RAIL_HIGH;
 	}
@@ -93,7 +83,6 @@ public class TelemetryPayloadParser {
 		return value;
 	}
 
-	/** Status topic carries {@code online} / {@code offline}, with or without JSON quotes. */
 	public static String parseStatus(String payload) {
 		if (payload == null) {
 			throw new InvalidPayloadException("Empty status");

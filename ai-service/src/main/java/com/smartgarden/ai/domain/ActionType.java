@@ -1,6 +1,5 @@
 package com.smartgarden.ai.domain;
 
-/** One-click actions the UI can offer (each maps to an existing REST call). Labels are user-facing (Spanish). */
 public enum ActionType {
 
 	APPLY_THRESHOLDS("Aplicar umbrales recomendados"),

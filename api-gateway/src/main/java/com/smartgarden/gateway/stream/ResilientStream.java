@@ -11,10 +11,6 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Keeps a gRPC server-streaming call open forever: when it fails or completes (service restarted, network error) it
- * is re-opened with exponential backoff. The backoff resets as soon as a message arrives.
- */
 public class ResilientStream<T> {
 
 	private static final Logger log = LoggerFactory.getLogger(ResilientStream.class);
@@ -37,9 +33,6 @@ public class ResilientStream<T> {
 
 	private volatile Context.CancellableContext context;
 
-	/**
-	 * @param opener starts the call, e.g. {@code (ctx, obs) -> ctx.run(() -> stub.streamX(req, obs))}
-	 */
 	public ResilientStream(String name, BiConsumer<Context.CancellableContext, StreamObserver<T>> opener,
 			Consumer<T> onMessage, ScheduledExecutorService scheduler, Duration initialBackoff, Duration maxBackoff) {
 		this.name = name;

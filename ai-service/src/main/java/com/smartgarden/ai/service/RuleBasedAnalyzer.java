@@ -13,11 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Deterministic fallback used when Gemini is not configured, fails, exceeds its quota or answers something incoherent:
- * crop-profile thresholds, a message that always matches the calculated {@link MoistureLevel}, and a pause when rain is
- * expected in the next 12 h. Fills the same fields as Gemini (headline, summary and recommendation details).
- */
 public final class RuleBasedAnalyzer {
 
 	private static final double HOT_TEMPERATURE = 28;
@@ -42,7 +37,7 @@ public final class RuleBasedAnalyzer {
 		String headline;
 		String summary;
 		List<RecommendationDetail> details = new ArrayList<>();
-		// Below 15 % the ESP32 irrigates even when the rain pause is active.
+
 		boolean pauseForRain = rainExpected
 				&& !(level == MoistureLevel.VERY_DRY && m != null && m < HealthEvaluator.CRITICAL_MOISTURE);
 
@@ -128,7 +123,7 @@ public final class RuleBasedAnalyzer {
 				}
 			}
 			default -> {
-				// SATURATED
+
 				headline = rainExpected ? "Suelo saturado: cuidado con el encharcamiento" : "Suelo saturado: no riegues";
 				summary = rainExpected
 						? ("La humedad está en %d %% y viene más lluvia: el suelo está saturado. "

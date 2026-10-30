@@ -10,9 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.grpc.server.exception.GrpcExceptionHandler;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps service exceptions to gRPC status codes (picked up automatically by Spring gRPC).
- */
 @Component
 public class GrpcErrorHandler implements GrpcExceptionHandler {
 

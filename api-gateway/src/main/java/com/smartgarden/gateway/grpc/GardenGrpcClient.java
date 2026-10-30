@@ -34,10 +34,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
-/**
- * Facade over the three blocking stubs used by the REST controllers. Every call has a deadline;
- * {@link io.grpc.StatusRuntimeException}s are translated to HTTP by the exception handler.
- */
 @Component
 public class GardenGrpcClient {
 
@@ -56,8 +52,6 @@ public class GardenGrpcClient {
 		this.ai = ai;
 		this.props = props;
 	}
-
-	// --- telemetry-service
 
 	public StatusResponse status() {
 		return DtoMapper.status(telemetry().getCurrentStatus(GetCurrentStatusRequest.getDefaultInstance()));
@@ -81,8 +75,6 @@ public class GardenGrpcClient {
 			.map(DtoMapper::event)
 			.toList();
 	}
-
-	// --- irrigation-service
 
 	public ConfigDto config() {
 		return DtoMapper.config(irrigation().getConfig(GetConfigRequest.getDefaultInstance()));
@@ -119,7 +111,6 @@ public class GardenGrpcClient {
 			.toList();
 	}
 
-	/** {@code id == 0} creates a new profile. */
 	public CropProfileDto upsertCrop(long id, CropProfileRequest r) {
 		CropProfile profile = CropProfile.newBuilder()
 			.setId(id)
@@ -136,10 +127,6 @@ public class GardenGrpcClient {
 		return pump(action, durationSec, "");
 	}
 
-	/**
-	 * Comando de bomba con clave de idempotencia: repetir la misma clave (reintento del navegador) no vuelve a
-	 * encender la bomba; telemetry-service lo deduplica.
-	 */
 	public PumpResponse pump(PumpAction action, int durationSec, String idempotencyKey) {
 		var response = irrigation().manualIrrigation(ManualIrrigationRequest.newBuilder()
 			.setAction(action)
@@ -148,8 +135,6 @@ public class GardenGrpcClient {
 			.build());
 		return new PumpResponse(response.getAccepted(), response.getMessage());
 	}
-
-	// --- ai-service
 
 	public AnalysisDto latestAnalysis() {
 		return DtoMapper.analysis(ai().getLatestAnalysis(GetLatestAnalysisRequest.getDefaultInstance()));
@@ -164,7 +149,7 @@ public class GardenGrpcClient {
 	}
 
 	public AnalysisDto requestAnalysis() {
-		// Data collection + one Gemini call (bounded to 25 s by ai-service): allow 4.5x the normal deadline.
+
 		return DtoMapper.analysis(ai.withDeadlineAfter(props.deadline().toMillis() * 9 / 2, TimeUnit.MILLISECONDS)
 			.requestAnalysis(RequestAnalysisRequest.getDefaultInstance()));
 	}

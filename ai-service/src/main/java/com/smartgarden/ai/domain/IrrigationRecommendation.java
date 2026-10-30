@@ -2,10 +2,6 @@ package com.smartgarden.ai.domain;
 
 import java.util.List;
 
-/**
- * Validated recommendation, produced from a Gemini answer (RecommendationValidator) or by the rule-based fallback.
- * {@code recommendations} always equals the {@code detail} of each entry of {@code details}.
- */
 public record IrrigationRecommendation(
 		Integer recommendedMin,
 		Integer recommendedMax,
@@ -33,13 +29,11 @@ public record IrrigationRecommendation(
 				recommendations, headline, details);
 	}
 
-	/** Thresholds clamped to the crop profile (±10 points). */
 	public IrrigationRecommendation withThresholds(int min, int max) {
 		return new IrrigationRecommendation(min, max, pauseForRain, hoursUntilNextIrrigation, riskLevel, summary,
 				recommendations, headline, details);
 	}
 
-	/** Risk derived from the moisture level (deterministic, never decided by Gemini). */
 	public IrrigationRecommendation withRisk(RiskLevel newRisk) {
 		return new IrrigationRecommendation(recommendedMin, recommendedMax, pauseForRain, hoursUntilNextIrrigation,
 				newRisk, summary, recommendations, headline, details);

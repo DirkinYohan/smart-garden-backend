@@ -17,20 +17,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Reads {@code Authorization: Bearer <jwt>} and enforces two things on every request:
- * <ul>
- * <li>the {@code tv} claim must match the user's current {@code token_version} (a password change closes the other
- * sessions) — 401 when it does not;</li>
- * <li>while {@code mustChangePassword} is true only {@code GET /auth/me} and {@code PUT /auth/password} are allowed
- * — everything else answers 403 {@code PASSWORD_CHANGE_REQUIRED}.</li>
- * </ul>
- */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private static final String BEARER = "Bearer ";
 
-	/** Rutas permitidas mientras el usuario debe cambiar la contraseña. */
 	private static final List<String> ALLOWED_WHILE_CHANGE = List.of("/api/v1/auth/me", "/api/v1/auth/password");
 
 	private static final List<String> PUBLIC_PREFIXES = List.of("/actuator/", "/swagger-ui", "/v3/api-docs", "/ws",

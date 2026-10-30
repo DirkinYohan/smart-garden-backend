@@ -7,14 +7,9 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Builds the JSON commands of the MQTT contract. CONFIG is retained so the ESP32 receives it when it reconnects; PUMP
- * is not.
- */
 @Component
 public class DeviceCommandFactory {
 
-	/** The ESP32 enforces the same cap in MANUAL mode. */
 	public static final int MAX_PUMP_DURATION_SEC = 120;
 
 	private final JsonMapper jsonMapper;

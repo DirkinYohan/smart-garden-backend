@@ -7,11 +7,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-/**
- * The Google GenAI auto-configuration fails at startup without an API key. When {@code GEMINI_API_KEY} is empty, the
- * chat model is disabled ({@code spring.ai.model.chat=none}) so the service still starts and every analysis uses the
- * rule-based fallback.
- */
 public class GeminiActivationPostProcessor implements EnvironmentPostProcessor, Ordered {
 
 	static final String API_KEY_PROPERTY = "spring.ai.google.genai.api-key";
@@ -29,7 +24,7 @@ public class GeminiActivationPostProcessor implements EnvironmentPostProcessor, 
 
 	@Override
 	public int getOrder() {
-		// After application.yaml has been loaded.
+
 		return Ordered.LOWEST_PRECEDENCE;
 	}
 

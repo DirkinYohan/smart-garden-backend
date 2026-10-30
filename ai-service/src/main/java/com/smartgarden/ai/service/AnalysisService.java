@@ -33,14 +33,6 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Runs irrigation analyses: collect input → moisture level → drying rate → Gemini (or rule-based fallback) →
- * validate coherence → deterministic projection, health and actions → persist → apply to the irrigation
- * config when the mode is AI → emit on the stream.
- * <p>
- * The moisture level is always calculated in Java before Gemini is called, so the message, the traffic light and the
- * action can never contradict the real soil moisture.
- */
 @Service
 public class AnalysisService {
 
@@ -50,10 +42,8 @@ public class AnalysisService {
 
 	public static final String TRIGGER_MANUAL = "MANUAL";
 
-	/** Analysis triggered by a change of crop, mode or thresholds. */
 	public static final String TRIGGER_CONFIG = "CONFIG";
 
-	/** At most one automatic analysis every 30 s after a config change (Gemini free-tier quota). */
 	public static final Duration CONFIG_ANALYSIS_SPACING = Duration.ofSeconds(30);
 
 	private final InputCollector inputCollector;
@@ -82,7 +72,6 @@ public class AnalysisService {
 
 	private Instant lastConfigAnalysis;
 
-	/** Configuration the last analysis ran with (or the one it applied), to ignore the echo of our own changes. */
 	private volatile String lastAnalyzedFingerprint;
 
 	public AnalysisService(InputCollector inputCollector, GeminiAnalyzer gemini, GardenDataClient garden,
@@ -114,7 +103,6 @@ public class AnalysisService {
 		}
 	}
 
-	/** Immediate analysis, limited to one call per cooldown window (free-tier quota). */
 	public AnalysisView requestAnalysis() {
 		synchronized (this) {
 			Instant now = clock.instant();
@@ -129,18 +117,10 @@ public class AnalysisService {
 		return analyze(inputCollector.collect(), TRIGGER_MANUAL);
 	}
 
-	/**
-	 * Analysis triggered by a change of crop, mode or thresholds (see {@code ConfigChangeWatcher}). It does not consume
-	 * the manual cooldown, but {@link #CONFIG_ANALYSIS_SPACING} keeps the Gemini quota under control. The crop and the
-	 * thresholds are always re-read from irrigation-service right before analysing.
-	 *
-	 * @return the new analysis, or {@code null} when it was skipped (no change, spacing or AI disabled)
-	 */
 	public AnalysisView requestConfigAnalysis() {
 		AnalysisContext ctx;
 		synchronized (configGate) {
-			// The spacing delays the analysis, it never drops it: two quick crop changes still produce the second
-			// analysis (it just waits a few seconds for the quota window).
+
 			awaitConfigSlot();
 			ctx = inputCollector.collect();
 			AnalysisInputData input = ctx.input();
@@ -161,7 +141,6 @@ public class AnalysisService {
 		return analyze(ctx, TRIGGER_CONFIG);
 	}
 
-	/** Sleeps until {@link #CONFIG_ANALYSIS_SPACING} has elapsed since the previous automatic analysis. */
 	private void awaitConfigSlot() {
 		long waitMillis = spacingWaitMillis(lastConfigAnalysis, clock.instant());
 		if (waitMillis <= 0) {
@@ -176,7 +155,6 @@ public class AnalysisService {
 		}
 	}
 
-	/** Milliseconds left before another automatic analysis is allowed (0 = go ahead). */
 	static long spacingWaitMillis(Instant lastAnalysis, Instant now) {
 		if (lastAnalysis == null) {
 			return 0;
@@ -201,7 +179,7 @@ public class AnalysisService {
 			try {
 				recommendation = RecommendationValidator.sanitize(gemini.recommend(input, level, rainExpected,
 						ActionAdvisor.candidates(input, rainThreshold)));
-				// The text must not contradict the level calculated in Java (e.g. "humedad baja" with 99 %).
+
 				CoherenceValidator.check(level, rainExpected, recommendation);
 				recommendation = clampToCrop(recommendation, input).withRisk(level.risk());
 				source = AnalysisSource.GEMINI;
@@ -214,7 +192,6 @@ public class AnalysisService {
 				source = AnalysisSource.RULES;
 			}
 
-			// Deterministic parts (never decided by Gemini)
 			Projection projection = MoistureProjector.project(input.validMoisture(), dryingRate, ctx.weather(),
 					input.minThreshold(), now);
 			boolean rainPauseApplies = rainExpected
@@ -246,7 +223,7 @@ public class AnalysisService {
 				applied = applyToIrrigation(entity, recommendation);
 			}
 			if (applied) {
-				// The echo of our own change must not trigger another analysis.
+
 				lastAnalyzedFingerprint = fingerprint(input.cropId(), input.mode(), recommendation.recommendedMin(),
 						recommendation.recommendedMax(), Boolean.TRUE.equals(recommendation.pauseForRain()), true);
 			}
@@ -260,7 +237,6 @@ public class AnalysisService {
 		}
 	}
 
-	/** AI thresholds are clamped to the crop profile (±10 points) so they change with the crop. */
 	static IrrigationRecommendation clampToCrop(IrrigationRecommendation recommendation, AnalysisInputData input) {
 		int[] clamped = CropThresholdClamp.clamp(recommendation.recommendedMin(), recommendation.recommendedMax(),
 				input.profileMin(), input.profileMax());

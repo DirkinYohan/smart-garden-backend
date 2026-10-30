@@ -5,10 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-/**
- * Un cambio de configuración nunca se descarta por el límite de 30 s: se espera el turno. Así dos cambios de cultivo
- * seguidos producen dos análisis (el segundo unos segundos después).
- */
 class ConfigAnalysisSpacingTest {
 
 	private static final Instant T0 = Instant.parse("2026-10-28T15:00:00Z");

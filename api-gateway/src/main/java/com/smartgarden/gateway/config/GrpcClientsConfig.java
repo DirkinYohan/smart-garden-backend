@@ -11,22 +11,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
 
-/**
- * One channel per downstream service (configured under spring.grpc.client.channel.*). Blocking stubs for REST calls,
- * async stubs for the server streams relayed to WebSocket.
- */
 @Configuration
 public class GrpcClientsConfig {
 
-	/** Testigo interno (INTERNAL_TOKEN); vacío = sin autenticación entre servicios. */
 	@Value("${smartgarden.internal-token:}")
 	private String internalToken;
 
-	/**
-	 * Aplica el testigo interno a un stub. <b>Obligatorio en los seis beans</b> (los tres blocking y los tres async):
-	 * los stubs de streaming son los que alimentan el WebSocket, y sin el testigo el relay recibe UNAUTHENTICATED y
-	 * la interfaz deja de actualizarse en tiempo real.
-	 */
 	private <T extends AbstractStub<T>> T withToken(T stub) {
 		return stub.withInterceptors(new InternalTokenClientInterceptor(internalToken));
 	}

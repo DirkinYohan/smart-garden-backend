@@ -11,19 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * Per local day (garden time zone): moisture avg / min / max of the valid samples, number of irrigations and pump
- * minutes. Days without valid samples are still listed (with null moisture values).
- */
 public final class DailyStatsCalculator {
 
 	private DailyStatsCalculator() {
 	}
 
-	/**
-	 * @param samples valid readings only (sensorOk = true)
-	 * @param events irrigation events that started in the period
-	 */
 	public static List<DailyStat> calculate(List<MoistureSample> samples, List<IrrigationEventEntity> events,
 			int days, ZoneId zone, Instant now) {
 		LocalDate today = LocalDate.ofInstant(now, zone);

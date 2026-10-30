@@ -11,10 +11,6 @@ import com.smartgarden.irrigation.domain.ConfigView;
 import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
-/**
- * gRPC client of telemetry-service, used to deliver commands to the ESP32.
- * @throws io.grpc.StatusRuntimeException on any failure (e.g. UNAVAILABLE)
- */
 @Component
 public class TelemetryClient {
 
@@ -37,7 +33,6 @@ public class TelemetryClient {
 			.build());
 	}
 
-	/** Igual que {@link #sendPump(PumpAction, int)} pero con clave de idempotencia. */
 	public SendDeviceCommandResponse sendPump(PumpAction action, int durationSec, String requestId) {
 		return send(SendDeviceCommandRequest.newBuilder()
 			.setPump(PumpCommand.newBuilder().setAction(action).setDurationSec(durationSec))

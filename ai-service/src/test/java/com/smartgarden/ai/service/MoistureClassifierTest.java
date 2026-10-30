@@ -6,10 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.smartgarden.ai.domain.MoistureLevel;
 import org.junit.jupiter.api.Test;
 
-/**
- * Los seis niveles con sus bordes exactos, para el rango de Cilantro (45–75 %), el del ejemplo del reporte:
- * 80 % y 86 % deben ser WET y 99 % SATURATED (nunca "humedad baja").
- */
 class MoistureClassifierTest {
 
 	private static final int MIN = 45;
@@ -64,7 +60,7 @@ class MoistureClassifierTest {
 
 	@Test
 	void usesTheActiveCropRange() {
-		// El mismo 80 % es "alta" para Cilantro (45-75) e "ideal" para un cultivo con rango 70-85.
+
 		assertThat(MoistureClassifier.classify(input().moisture(80).thresholds(45, 75).build()))
 			.isEqualTo(MoistureLevel.WET);
 		assertThat(MoistureClassifier.classify(input().moisture(80).thresholds(70, 85).build()))

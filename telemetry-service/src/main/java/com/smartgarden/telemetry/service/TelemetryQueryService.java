@@ -33,14 +33,12 @@ public class TelemetryQueryService {
 		this.clock = clock;
 	}
 
-	/** Valid readings of the last {@code hours} (1–24), oldest first. */
 	@Transactional(readOnly = true)
 	public List<MoistureSample> recentSamples(int hours) {
 		int h = Math.clamp(hours, 1, 24);
 		return repository.findSamplesSince(clock.instant().minus(Duration.ofHours(h)));
 	}
 
-	/** One entry per local day of the last {@code days} (1–31), oldest first. */
 	@Transactional(readOnly = true)
 	public List<DailyStat> dailyStats(int days) {
 		int d = Math.clamp(days, 1, 31);

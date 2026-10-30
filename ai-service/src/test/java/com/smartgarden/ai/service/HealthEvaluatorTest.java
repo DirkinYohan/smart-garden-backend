@@ -14,7 +14,7 @@ class HealthEvaluatorTest {
 	void inRangeIsGood() {
 		assertThat(HealthEvaluator.evaluate(input().moisture(55).build(), false))
 			.isEqualTo(new Result(HealthStatus.GOOD, NextAction.WAIT));
-		// 40-70: 43 sigue siendo ideal, ya no "cerca del mínimo"
+
 		assertThat(HealthEvaluator.evaluate(input().moisture(43).build(), false))
 			.isEqualTo(new Result(HealthStatus.GOOD, NextAction.WAIT));
 	}
@@ -37,7 +37,7 @@ class HealthEvaluatorTest {
 			.isEqualTo(NextAction.PAUSED_FOR_RAIN);
 		assertThat(HealthEvaluator.evaluate(input().moisture(55).build(), true).nextAction())
 			.isEqualTo(NextAction.PAUSED_FOR_RAIN);
-		// below 15 % the ESP32 waters anyway
+
 		assertThat(HealthEvaluator.evaluate(input().moisture(10).build(), true).nextAction())
 			.isEqualTo(NextAction.IRRIGATE_NOW);
 	}
@@ -54,7 +54,7 @@ class HealthEvaluatorTest {
 
 	@Test
 	void saturatedSoilIsCriticalAndNeverWaters() {
-		// 40-70: 85 es el último punto de la banda "alta" y 86 ya es saturación
+
 		assertThat(HealthEvaluator.evaluate(input().moisture(85).build(), false))
 			.isEqualTo(new Result(HealthStatus.ATTENTION, NextAction.WAIT));
 		assertThat(HealthEvaluator.evaluate(input().moisture(86).build(), false))
@@ -73,7 +73,7 @@ class HealthEvaluatorTest {
 
 	@Test
 	void usesTheConfiguredThresholds() {
-		// Con umbrales 60-80, 55 % queda en la banda "baja"
+
 		assertThat(HealthEvaluator.evaluate(input().thresholds(60, 80).moisture(55).build(), false))
 			.isEqualTo(new Result(HealthStatus.ATTENTION, NextAction.IRRIGATE_NOW));
 		assertThat(HealthEvaluator.evaluate(input().thresholds(60, 80).moisture(49).build(), false).healthStatus())

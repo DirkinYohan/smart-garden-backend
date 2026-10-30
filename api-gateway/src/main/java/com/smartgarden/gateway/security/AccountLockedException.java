@@ -2,7 +2,6 @@ package com.smartgarden.gateway.security;
 
 import org.springframework.security.core.AuthenticationException;
 
-/** Cuenta bloqueada por intentos fallidos: se responde 423 con los minutos restantes. */
 public class AccountLockedException extends AuthenticationException {
 
 	private final long minutesRemaining;

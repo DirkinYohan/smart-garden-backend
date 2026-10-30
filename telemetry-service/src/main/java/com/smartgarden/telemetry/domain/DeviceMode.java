@@ -2,9 +2,6 @@ package com.smartgarden.telemetry.domain;
 
 import com.smartgarden.contracts.common.v1.IrrigationMode;
 
-/**
- * Irrigation mode reported by / sent to the ESP32.
- */
 public enum DeviceMode {
 	AUTO, MANUAL, AI;
 

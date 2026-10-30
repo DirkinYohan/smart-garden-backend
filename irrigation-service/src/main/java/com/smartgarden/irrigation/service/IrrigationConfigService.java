@@ -22,10 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/**
- * Owns the irrigation configuration. Every change is persisted, pushed to the ESP32 (retained CONFIG) and emitted to
- * the config stream after the transaction commits.
- */
 @Service
 public class IrrigationConfigService {
 
@@ -87,9 +83,7 @@ public class IrrigationConfigService {
 			if (update.cropProfileId() != null) {
 				CropProfileEntity crop = findCrop(update.cropProfileId());
 				cfg.setCrop(crop);
-				// A new crop always brings its own range, in AUTO, MANUAL and AI (in AI the next analysis may fine
-				// tune it, but it never keeps the previous crop's thresholds). Explicit min/max in the same request
-				// win, so a manual adjustment is respected until the user changes the crop again.
+
 				if (update.minMoisture() == null && update.maxMoisture() == null) {
 					cfg.setMinMoisture(crop.getMinMoisture());
 					cfg.setMaxMoisture(crop.getMaxMoisture());
@@ -123,9 +117,6 @@ public class IrrigationConfigService {
 		return manualIrrigation(action, durationSec, null);
 	}
 
-	/**
-	 * Riego manual idempotente: el mismo `requestId` (reintento del cliente) no vuelve a encender la bomba.
-	 */
 	public ManualResult manualIrrigation(PumpAction action, int durationSec, String requestId) {
 		ConfigView cfg = current();
 		if (cfg.mode() != IrrigationModeType.MANUAL) {
@@ -155,7 +146,7 @@ public class IrrigationConfigService {
 				return new AiApplyResult(false, "La configuración no está en modo AI; recomendación no aplicada",
 						cfg.toView());
 			}
-			// The AI can only move within ±10 points of the active crop profile: recommendations follow the crop.
+
 			int profileMin = cfg.getCrop() == null ? 0 : cfg.getCrop().getMinMoisture();
 			int profileMax = cfg.getCrop() == null ? 0 : cfg.getCrop().getMaxMoisture();
 			int[] clamped = CropThresholdClamp.clamp(min, max, profileMin, profileMax);
@@ -178,7 +169,6 @@ public class IrrigationConfigService {
 		return result;
 	}
 
-	/** Called after a crop profile is edited: re-applies its thresholds if it is the active crop in AUTO. */
 	public void onCropProfileUpdated(long cropId) {
 		ConfigView view = tx.execute(status -> {
 			IrrigationConfigEntity cfg = load();

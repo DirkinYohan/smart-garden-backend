@@ -17,9 +17,6 @@ import com.smartgarden.contracts.ai.v1.Weather;
 import io.grpc.stub.StreamObserver;
 import org.springframework.stereotype.Service;
 
-/**
- * gRPC adapter. Exceptions are translated to gRPC status codes by {@link GrpcErrorHandler}.
- */
 @Service
 public class AiGrpcService extends AiServiceGrpc.AiServiceImplBase {
 

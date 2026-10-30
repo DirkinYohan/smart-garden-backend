@@ -9,11 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * Pushes the configuration to the ESP32 as a retained CONFIG message (via telemetry-service). If telemetry-service
- * or the broker is down, the latest configuration is kept and retried periodically; the change itself is never lost
- * because the database is the source of truth.
- */
 @Component
 public class DeviceConfigSync {
 

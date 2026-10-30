@@ -6,10 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Genera la contraseña inicial aleatoria (16 caracteres) cuando ADMIN_PASSWORD no está definida. Garantiza
- * mayúscula, minúscula, número y símbolo, y usa {@link SecureRandom}.
- */
 @Component
 public class PasswordGenerator {
 

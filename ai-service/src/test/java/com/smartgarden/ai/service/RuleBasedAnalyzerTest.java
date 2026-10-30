@@ -15,7 +15,6 @@ class RuleBasedAnalyzerTest {
 
 	private static final double RAIN_THRESHOLD = 70;
 
-	/** El respaldo por reglas nunca puede contradecir el nivel calculado. */
 	private static void assertCoherent(IrrigationRecommendation r, MoistureLevel level, boolean rainExpected) {
 		assertThat(CoherenceValidator.problems(level, rainExpected, CoherenceValidator.textOf(r))).isEmpty();
 	}
@@ -63,7 +62,7 @@ class RuleBasedAnalyzerTest {
 
 	@Test
 	void wetSoilIsNeverReportedAsInRange() {
-		// 72 % con rango 40-70: antes decía "dentro del rango recomendado"
+
 		IrrigationRecommendation r = RuleBasedAnalyzer.analyze(input().moisture(72).build(), RAIN_THRESHOLD);
 
 		assertThat(r.headline()).isEqualTo("Humedad alta, no riegues");
@@ -103,7 +102,7 @@ class RuleBasedAnalyzerTest {
 				RAIN_THRESHOLD);
 
 		assertThat(r.headline()).contains("aunque llueva");
-		// With 12 % the ESP32 irrigates even with the rain pause on
+
 		assertThat(r.pauseForRain()).isFalse();
 		assertThat(r.recommendations()).anyMatch(t -> t.contains("riega aunque la pausa"));
 		assertCoherent(r, MoistureLevel.VERY_DRY, true);

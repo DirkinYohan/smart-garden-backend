@@ -20,10 +20,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Flujo completo de credencial de un solo uso: login inicial → 403 en el resto de la API → cambio de contraseña →
- * token nuevo válido → token viejo rechazado. Base H2 propia para partir siempre de un sistema vacío.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -140,7 +136,7 @@ class PasswordChangeFlowTest {
 	@Test
 	@Order(8)
 	void theNewTokenWorksAndMeShowsThePasswordAsChanged() throws Exception {
-		// 503 = la petición pasó la seguridad y el servicio de destino está apagado en tests
+
 		mvc.perform(get("/api/v1/status").header("Authorization", "Bearer " + newToken))
 			.andExpect(status().isServiceUnavailable());
 		mvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer " + newToken))

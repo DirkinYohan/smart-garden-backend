@@ -10,19 +10,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Decides which one-click actions make sense for the current configuration, and removes any other action from the
- * recommendations (whoever wrote them).
- * <ul>
- * <li>APPLY_THRESHOLDS: mode is not AI and the recommended thresholds differ from the current ones.</li>
- * <li>ENABLE_AI_MODE: mode is not AI.</li>
- * <li>ENABLE_RAIN_PAUSE: mode is not AI, the pause is off and rain is expected.</li>
- * <li>DISABLE_RAIN_PAUSE: mode is not AI, the pause is on and no rain is expected (max probability &lt; 40 % and
- * &lt; 0.5 mm).</li>
- * <li>CHECK_SENSOR: the sensor is failing or there is no valid recent reading (also forced into the list).</li>
- * </ul>
- * In mode AI the IA itself sets thresholds and rain pause, so only CHECK_SENSOR is offered.
- */
 public final class ActionAdvisor {
 
 	static final double NO_RAIN_PROBABILITY = 40;
@@ -32,7 +19,6 @@ public final class ActionAdvisor {
 	private ActionAdvisor() {
 	}
 
-	/** Actions Gemini may choose from (APPLY_THRESHOLDS is re-checked once thresholds are known). */
 	public static Set<ActionType> candidates(AnalysisInputData in, double rainThreshold) {
 		Set<ActionType> set = EnumSet.noneOf(ActionType.class);
 		if (needsSensorCheck(in)) {
@@ -63,10 +49,6 @@ public final class ActionAdvisor {
 		return set;
 	}
 
-	/**
-	 * Keeps only eligible actions (with the canonical Spanish label), and makes sure a sensor problem always comes
-	 * first with its CHECK_SENSOR action. At most 4 recommendations.
-	 */
 	public static List<RecommendationDetail> attach(List<RecommendationDetail> details, Set<ActionType> eligible) {
 		List<RecommendationDetail> result = new ArrayList<>();
 		Set<ActionType> used = EnumSet.noneOf(ActionType.class);

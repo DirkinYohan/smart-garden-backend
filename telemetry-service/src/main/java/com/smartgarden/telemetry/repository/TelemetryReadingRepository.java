@@ -15,7 +15,6 @@ public interface TelemetryReadingRepository extends JpaRepository<TelemetryReadi
 
 	Optional<TelemetryReadingEntity> findTopBySensorOkTrueOrderByReceivedAtDesc();
 
-	/** Lightweight samples for history aggregation; readings with a faulty sensor are excluded. */
 	@Query("""
 			select new com.smartgarden.telemetry.domain.MoistureSample(r.receivedAt, r.moisture, r.pumpOn)
 			from TelemetryReadingEntity r

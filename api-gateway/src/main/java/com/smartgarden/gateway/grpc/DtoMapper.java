@@ -45,9 +45,6 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Protobuf → REST/WebSocket DTOs. Enum prefixes are stripped ("IRRIGATION_MODE_AUTO" → "AUTO").
- */
 public final class DtoMapper {
 
 	private DtoMapper() {

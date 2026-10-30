@@ -8,13 +8,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
-/**
- * Estado de seguridad del usuario que necesita cada petición: {@code token_version} (para invalidar tokens viejos)
- * y {@code mustChangePassword} (para el bloqueo del primer inicio de sesión).
- * <p>
- * Se cachea 30 s por usuario para no consultar la base en cada llamada; el caché se invalida al cambiar o
- * restablecer la contraseña.
- */
 @Service
 public class UserSessionState {
 
@@ -31,7 +24,6 @@ public class UserSessionState {
 		this.clock = clock;
 	}
 
-	/** Estado actual del usuario, o vacío si no existe. */
 	public Optional<Snapshot> snapshot(String username) {
 		if (username == null) {
 			return Optional.empty();

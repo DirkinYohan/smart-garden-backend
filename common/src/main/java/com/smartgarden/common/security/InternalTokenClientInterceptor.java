@@ -8,10 +8,6 @@ import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
-/**
- * Añade el testigo interno a cada llamada gRPC saliente. Si no hay testigo configurado no hace nada (desarrollo y
- * tests).
- */
 public class InternalTokenClientInterceptor implements ClientInterceptor {
 
 	private final String token;

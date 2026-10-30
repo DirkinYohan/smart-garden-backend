@@ -18,10 +18,10 @@ class DailyStatsCalculatorTest {
 
 	@Test
 	void groupsByLocalDayAndKeepsEmptyDays() {
-		Instant now = Instant.parse("2026-10-28T15:00:00Z"); // 10:00 in Bogotá
+		Instant now = Instant.parse("2026-10-28T15:00:00Z");
 		List<MoistureSample> samples = List.of(new MoistureSample(Instant.parse("2026-10-27T13:00:00Z"), 40, false),
 				new MoistureSample(Instant.parse("2026-10-27T20:00:00Z"), 60, false),
-				// 2026-10-28T03:00Z is still 2026-10-27 in Bogotá (UTC-5)
+
 				new MoistureSample(Instant.parse("2026-10-28T03:00:00Z"), 50, false),
 				new MoistureSample(Instant.parse("2026-10-28T14:00:00Z"), 70, false));
 		IrrigationEventEntity done = IrrigationEventEntity.open("esp32", Instant.parse("2026-10-27T15:00:00Z"), 30,

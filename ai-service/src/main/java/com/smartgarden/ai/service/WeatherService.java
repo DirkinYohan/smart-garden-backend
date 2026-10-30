@@ -8,9 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * Open-Meteo forecast with a small in-memory cache (shared by analyses and GetWeather).
- */
 @Service
 public class WeatherService {
 
@@ -30,9 +27,6 @@ public class WeatherService {
 		this.clock = clock;
 	}
 
-	/**
-	 * @throws WeatherUnavailableException if Open-Meteo cannot be reached and nothing is cached
-	 */
 	public synchronized WeatherSnapshot current() {
 		WeatherSnapshot snapshot = cached;
 		if (snapshot != null && snapshot.fetchedAt().plus(props.cacheTtl()).isAfter(clock.instant())) {
@@ -48,7 +42,7 @@ public class WeatherService {
 		catch (RuntimeException ex) {
 			log.warn("Open-Meteo unavailable: {}", ex.getMessage());
 			if (cached != null) {
-				return cached; // stale but better than nothing
+				return cached;
 			}
 			throw new WeatherUnavailableException("El servicio de clima no está disponible", ex);
 		}

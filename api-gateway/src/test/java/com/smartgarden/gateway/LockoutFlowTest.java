@@ -13,7 +13,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Tras 5 intentos fallidos la cuenta se bloquea 15 minutos y el login responde 423. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -38,7 +37,6 @@ class LockoutFlowTest {
 			.andExpect(jsonPath("$.message").value(
 					"Cuenta bloqueada por intentos fallidos. Intenta de nuevo en 15 minutos"));
 
-		// Incluso con la contrase\u00f1a correcta sigue bloqueada
 		mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
 				.content(loginBody("test-password"))).andExpect(status().isLocked());
 	}

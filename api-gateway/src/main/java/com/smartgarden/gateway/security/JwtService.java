@@ -16,12 +16,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-/**
- * Issues and validates HS256 JWTs (stateless authentication for REST and STOMP CONNECT).
- * <p>
- * Besides the subject and the role, the token carries {@code tv} (token_version) and {@code mcp}
- * (mustChangePassword). Bumping the user's token_version invalidates every token issued before.
- */
 @Service
 public class JwtService {
 
@@ -65,9 +59,6 @@ public class JwtService {
 		return new IssuedToken(token, expiresAt);
 	}
 
-	/**
-	 * @throws InvalidTokenException if the token is malformed, tampered or expired
-	 */
 	public TokenClaims parse(String token) {
 		try {
 			Claims claims = Jwts.parser()
@@ -87,20 +78,15 @@ public class JwtService {
 		}
 	}
 
-	/**
-	 * @throws InvalidTokenException if the token is malformed, tampered or expired
-	 */
 	public Authentication authenticate(String token) {
 		return authentication(parse(token));
 	}
 
-	/** Authentication Spring Security para un token ya verificado. */
 	public Authentication authentication(TokenClaims claims) {
 		return UsernamePasswordAuthenticationToken.authenticated(claims.username(), null,
 				List.of(new SimpleGrantedAuthority("ROLE_" + claims.role())));
 	}
 
-	/** Datos del token ya verificado. */
 	public record TokenClaims(String username, String role, int tokenVersion, boolean mustChangePassword) {
 	}
 

@@ -63,7 +63,6 @@ class IrrigationEventServiceTest {
 		when(repository.findFirstByDeviceIdAndEndedAtIsNullOrderByStartedAtDesc("esp32"))
 			.thenReturn(Optional.of(open));
 
-		// pump still on after restart: must not open a duplicate event
 		assertThat(service.onReading(reading(30, true, 30))).isEqualTo(PumpTransition.NONE);
 		verify(repository, never()).save(any());
 

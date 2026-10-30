@@ -11,10 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Cambio de contraseña por parte del usuario autenticado: valida la actual, aplica la política, marca la contraseña
- * como definitiva, incrementa {@code token_version} (cierra las demás sesiones) y devuelve un token nuevo.
- */
 @Service
 public class PasswordService {
 

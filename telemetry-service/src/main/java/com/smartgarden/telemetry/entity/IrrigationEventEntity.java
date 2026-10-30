@@ -12,9 +12,6 @@ import jakarta.persistence.Table;
 import java.time.Duration;
 import java.time.Instant;
 
-/**
- * One watering cycle, derived from a pumpOn false→true (open) and true→false (close) transition.
- */
 @Entity
 @Table(name = "irrigation_event")
 public class IrrigationEventEntity {

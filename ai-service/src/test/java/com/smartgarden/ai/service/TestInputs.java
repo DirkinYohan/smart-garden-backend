@@ -2,7 +2,6 @@ package com.smartgarden.ai.service;
 
 import com.smartgarden.ai.domain.AnalysisInputData;
 
-/** Readable builder for {@link AnalysisInputData} in tests (defaults: Tomate 40–70, AUTO, 55 %, no rain). */
 final class TestInputs {
 
 	String crop = "Tomate";

@@ -10,10 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-/**
- * The device is online when its last status is not "offline" (Last Will) and a reading arrived within the offline
- * timeout. Emits an event on every transition.
- */
 @Service
 public class DeviceStatusTracker {
 
@@ -43,7 +39,7 @@ public class DeviceStatusTracker {
 	public synchronized void onReading(TelemetrySnapshot reading) {
 		lastReadingAt = reading.receivedAt();
 		deviceId = reading.deviceId();
-		// A reading proves the device is connected even if the "online" status message was missed.
+
 		lastStatus = "online";
 		evaluate("telemetry");
 	}

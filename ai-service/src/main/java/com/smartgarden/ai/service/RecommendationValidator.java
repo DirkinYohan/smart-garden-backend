@@ -10,12 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Validates and clamps a Gemini answer: thresholds within 10–90 with {@code max - min >= 10}, headline, summary of at
- * most two sentences and 1 to 4 recommendation details. Structurally invalid answers throw
- * {@link InvalidRecommendationException} so the caller falls back to the rule-based analysis. Actions are kept only as
- * a type here; ActionAdvisor decides later whether they are offered.
- */
 public final class RecommendationValidator {
 
 	public static final int MIN_THRESHOLD = 10;
@@ -81,7 +75,6 @@ public final class RecommendationValidator {
 				d.action() == null ? null : new SuggestedAction(d.action(), d.action().label()));
 	}
 
-	/** Clamps to 10–90 and widens the range to keep {@code max - min >= 10}. */
 	static int[] clampThresholds(int min, int max) {
 		int lo = Math.clamp(Math.min(min, max), MIN_THRESHOLD, MAX_THRESHOLD);
 		int hi = Math.clamp(Math.max(min, max), MIN_THRESHOLD, MAX_THRESHOLD);
@@ -95,7 +88,6 @@ public final class RecommendationValidator {
 		return new int[] { lo, hi };
 	}
 
-	/** Keeps at most two sentences. */
 	static String limitSentences(String text) {
 		String[] sentences = text.split("(?<=[.!?])\\s+");
 		String joined = String.join(" ", Arrays.copyOf(sentences, Math.min(2, sentences.length)));

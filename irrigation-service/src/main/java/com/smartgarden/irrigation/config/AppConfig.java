@@ -16,7 +16,6 @@ public class AppConfig {
 		return Clock.systemUTC();
 	}
 
-	/** Channel "telemetry" is configured under spring.grpc.client.channel.telemetry (h2c by default). */
 	@Bean
 	TelemetryServiceGrpc.TelemetryServiceBlockingStub telemetryStub(GrpcChannelFactory channels) {
 		return TelemetryServiceGrpc.newBlockingStub(channels.createChannel("telemetry"));

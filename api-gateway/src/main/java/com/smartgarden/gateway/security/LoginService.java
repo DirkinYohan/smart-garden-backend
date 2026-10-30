@@ -12,10 +12,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- * Inicio de sesión con protección contra fuerza bruta: 5 intentos fallidos seguidos bloquean la cuenta 15 minutos. El
- * mensaje es el mismo si el usuario no existe o si la contraseña es incorrecta.
- */
 @Service
 public class LoginService {
 
@@ -37,7 +33,6 @@ public class LoginService {
 
 	private final Clock clock;
 
-	/** Hash descartable para que un usuario inexistente tarde lo mismo que uno existente. */
 	private final String dummyHash;
 
 	public LoginService(AppUserRepository users, PasswordEncoder passwordEncoder, JwtService jwtService,
@@ -50,10 +45,6 @@ public class LoginService {
 		this.dummyHash = passwordEncoder.encode("timing-only-placeholder");
 	}
 
-	/**
-	 * Sin {@code @Transactional} a propósito: un intento fallido lanza una excepción y una transacción única haría
-	 * rollback del contador de fallos, con lo que la cuenta nunca se bloquearía. Cada {@code save} se confirma solo.
-	 */
 	public LoginResult login(String username, String password) {
 		Instant now = clock.instant();
 		AppUserEntity user = users.findByUsername(username).orElse(null);

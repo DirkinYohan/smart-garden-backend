@@ -12,18 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Publica comandos al ESP32. Es <b>idempotente</b> por `request_id`: si llega dos veces el mismo identificador dentro de la
- * ventana de deduplicación (reintento de red, doble clic), el segundo no vuelve a encender la bomba y devuelve lo que ya
- * se publicó. Sin identificador se publica siempre (comportamiento clásico).
- */
 @Service
 public class DeviceCommandService {
 
-	/** Tiempo durante el que se recuerda un comando ya publicado. */
 	static final Duration DEDUPE_WINDOW = Duration.ofMinutes(10);
 
-	/** Tope de entradas para que el mapa no crezca sin control. */
 	private static final int MAX_ENTRIES = 500;
 
 	private final DeviceCommandFactory factory;
@@ -77,7 +70,6 @@ public class DeviceCommandService {
 		return new SentCommand(topic, command.payload(), command.retained());
 	}
 
-	/** Olvida las claves caducadas y, si aún así hay demasiadas, vacía el mapa. */
 	private void prune() {
 		Instant limit = Instant.now().minus(DEDUPE_WINDOW);
 		sentAt.entrySet().removeIf((e) -> {

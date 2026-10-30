@@ -10,10 +10,6 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
-/**
- * Routes inbound MQTT messages. Never throws: an exception here would make Paho drop the connection, so invalid
- * payloads are logged and discarded.
- */
 @Component
 public class MqttInboundHandler {
 
@@ -47,7 +43,7 @@ public class MqttInboundHandler {
 			}
 			else if (props.statusTopic().equals(topic)) {
 				if (payload.isBlank()) {
-					return; // retained message cleared
+					return;
 				}
 				statusTracker.onStatusMessage(TelemetryPayloadParser.parseStatus(payload));
 			}

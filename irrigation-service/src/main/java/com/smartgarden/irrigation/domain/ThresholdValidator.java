@@ -1,9 +1,5 @@
 package com.smartgarden.irrigation.domain;
 
-/**
- * Moisture threshold rules: {@code 0 <= min < max <= 100} and {@code max - min >= 10}. Messages are user-facing
- * (Spanish).
- */
 public final class ThresholdValidator {
 
 	public static final int MIN_GAP = 10;

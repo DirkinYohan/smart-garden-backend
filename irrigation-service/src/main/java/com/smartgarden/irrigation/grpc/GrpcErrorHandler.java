@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.grpc.server.exception.GrpcExceptionHandler;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps service exceptions to gRPC status codes (picked up automatically by Spring gRPC).
- */
 @Component
 public class GrpcErrorHandler implements GrpcExceptionHandler {
 
@@ -29,7 +26,7 @@ public class GrpcErrorHandler implements GrpcExceptionHandler {
 			return Status.FAILED_PRECONDITION.withDescription(ex.getMessage()).asException();
 		}
 		if (ex instanceof StatusRuntimeException downstream) {
-			// Error from telemetry-service: propagate its status (e.g. UNAVAILABLE).
+
 			log.warn("Downstream gRPC call failed: {}", downstream.getStatus());
 			Status status = downstream.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED ? Status.UNAVAILABLE
 					: downstream.getStatus();

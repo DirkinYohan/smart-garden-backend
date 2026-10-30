@@ -6,12 +6,8 @@ import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
-/**
- * Maps a Gemini failure to a {@link FallbackReason} code plus a short, sanitized detail for logs and storage.
- */
 public final class FallbackClassifier {
 
-	/** Google API keys ("AIza…") or any "key=" query parameter: never stored or logged. */
 	private static final Pattern SECRETS = Pattern.compile("AIza[0-9A-Za-z_\\-]{20,}|([?&]key=)[^&\\s\"]+");
 
 	private static final int MAX_DETAIL = 300;
@@ -57,7 +53,6 @@ public final class FallbackClassifier {
 		return FallbackReason.ERROR;
 	}
 
-	/** Root-cause chain as one short line, without secrets. */
 	public static String detail(Throwable error) {
 		String text = SECRETS.matcher(allMessages(error)).replaceAll("$1***").replaceAll("\\s+", " ").trim();
 		return text.length() <= MAX_DETAIL ? text : text.substring(0, MAX_DETAIL) + "…";

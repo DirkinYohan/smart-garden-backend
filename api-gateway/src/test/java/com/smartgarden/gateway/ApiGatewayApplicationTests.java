@@ -15,9 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Full context (H2 + Flyway, security, MVC) with every downstream service unreachable.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -90,10 +87,6 @@ class ApiGatewayApplicationTests {
 		mvc.perform(get("/actuator/health")).andExpect(status().isOk());
 	}
 
-	/**
-	 * Token listo para usar: la primera vez cambia la contrase\u00f1a inicial (credencial de un solo uso) y devuelve el
-	 * token nuevo; en el resto de pruebas de la clase ya se entra con la contrase\u00f1a definitiva.
-	 */
 	private String token() throws Exception {
 		String already = login(NEW_PASSWORD);
 		if (already != null) {
@@ -115,7 +108,6 @@ class ApiGatewayApplicationTests {
 		return jsonMapper.readTree(body).get("token").asString();
 	}
 
-	/** @return el token, o null si las credenciales no son v\u00e1lidas */
 	private String login(String password) throws Exception {
 		String body = mvc
 			.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)

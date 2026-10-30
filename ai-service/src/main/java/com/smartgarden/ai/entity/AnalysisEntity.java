@@ -49,7 +49,6 @@ public class AnalysisEntity {
 	@Column(nullable = false, length = 1000)
 	private String summary;
 
-	/** JSON array of strings. */
 	@Column(nullable = false, length = 4000)
 	private String recommendations;
 
@@ -59,11 +58,8 @@ public class AnalysisEntity {
 	@Column(name = "fallback_reason", length = 500)
 	private String fallbackReason;
 
-	/** JSON of {@link com.smartgarden.ai.domain.AnalysisInputData}. */
 	@Column(name = "input_snapshot", nullable = false, length = 4000)
 	private String inputSnapshot;
-
-	// --- v1.1 (null for analyses created before) ---
 
 	@Column(length = 200)
 	private String headline;
@@ -76,18 +72,15 @@ public class AnalysisEntity {
 	@Column(name = "next_action", length = 24)
 	private NextAction nextAction;
 
-	/** JSON array of {@link com.smartgarden.ai.domain.RecommendationDetail}. */
 	@Column(name = "recommendation_details", length = 4000)
 	private String recommendationDetails;
 
-	/** JSON of {@link com.smartgarden.ai.domain.Projection}. */
 	@Column(length = 4000)
 	private String projection;
 
 	@Column(name = "fallback_detail", length = 500)
 	private String fallbackDetail;
 
-	/** v1.2: moisture level calculated in Java (null for analyses stored before). */
 	@Enumerated(EnumType.STRING)
 	@Column(name = "moisture_level", length = 16)
 	private com.smartgarden.ai.domain.MoistureLevel moistureLevel;

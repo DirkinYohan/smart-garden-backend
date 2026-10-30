@@ -8,9 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Groups samples into fixed, epoch-aligned buckets (avg / min / max moisture per bucket).
- */
 public final class HistoryAggregator {
 
 	private HistoryAggregator() {

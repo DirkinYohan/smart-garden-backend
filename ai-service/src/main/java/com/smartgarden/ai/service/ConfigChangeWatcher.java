@@ -17,15 +17,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Subscribes to {@code IrrigationService.StreamConfigChanges}. When the crop, the mode or the thresholds change it
- * launches an immediate analysis, with a {@value #DEBOUNCE_SECONDS} s debounce so several changes in a row (sliders,
- * crop + mode) produce a single analysis instead of a burst.
- * <p>
- * The analysis re-reads the crop and the thresholds from irrigation-service right before running (see
- * {@link AnalysisService#requestConfigAnalysis()}), so the new analysis always talks about the new crop. The
- * subscription reconnects with exponential backoff when irrigation-service restarts.
- */
 @Component
 public class ConfigChangeWatcher {
 
@@ -122,7 +113,6 @@ public class ConfigChangeWatcher {
 		}
 	}
 
-	/** Runs off the scheduler thread: Gemini may take up to its timeout. */
 	private void runAnalysis() {
 		Thread.ofVirtual().name("config-analysis").start(() -> {
 			try {

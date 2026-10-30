@@ -3,9 +3,6 @@ package com.smartgarden.telemetry.service;
 import java.time.Duration;
 import java.time.Instant;
 
-/**
- * Decides whether a reading is stored: at most once per interval, and always when pumpOn changes.
- */
 public final class PersistencePolicy {
 
 	private PersistencePolicy() {

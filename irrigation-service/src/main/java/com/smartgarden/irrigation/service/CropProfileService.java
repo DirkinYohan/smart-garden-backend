@@ -36,7 +36,7 @@ public class CropProfileService {
 		return repository.findAllByOrderByNameAsc().stream().map(CropProfileEntity::toView).toList();
 	}
 
-	/** Creates the profile when {@code id == 0}, otherwise updates it. */
+	
 	public CropProfileView upsert(CropProfileView input) {
 		CropProfileView saved = tx.execute(status -> save(input));
 		if (input.id() != 0) {

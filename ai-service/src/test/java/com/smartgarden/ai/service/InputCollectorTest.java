@@ -18,10 +18,6 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Reproduces the "La humedad del suelo (0 %)" bug: the ESP32 sent raw = 4095 (ADC rail, sensor disconnected) as
- * moisture 0 with sensorOk = true, and the analysis used the latest reading even when it was 12 hours old.
- */
 class InputCollectorTest {
 
 	private static final Instant NOW = Instant.parse("2026-10-28T15:00:00Z");
@@ -35,7 +31,7 @@ class InputCollectorTest {
 
 	@Test
 	void railReadingIsNotUsedAsZeroPercent() {
-		// Old telemetry: raw 4095 stored as moisture 0 with sensorOk = true, 1 minute ago
+
 		CurrentStatus status = status(reading(0, 4095, true, NOW.minusSeconds(60)), null);
 
 		AnalysisInputData in = build(status);

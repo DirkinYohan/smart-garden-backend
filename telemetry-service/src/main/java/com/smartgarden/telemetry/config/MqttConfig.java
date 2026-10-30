@@ -17,10 +17,6 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
-/**
- * Spring Integration MQTT (Eclipse Paho v3): one inbound adapter for telemetry + status and one outbound handler for
- * commands. Paho reconnects automatically if the broker goes away.
- */
 @Configuration
 public class MqttConfig {
 

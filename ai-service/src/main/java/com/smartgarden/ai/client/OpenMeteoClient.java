@@ -11,10 +11,6 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-/**
- * Open-Meteo forecast API (free, no API key). Requests the current conditions and the next 12 hours.
- * @throws org.springframework.web.client.RestClientException if the API is unreachable
- */
 @Component
 public class OpenMeteoClient {
 

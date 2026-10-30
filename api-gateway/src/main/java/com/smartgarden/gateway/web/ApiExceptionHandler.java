@@ -22,9 +22,6 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-/**
- * Every error leaves the API as {@code {timestamp, status, error, message, path}}.
- */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 

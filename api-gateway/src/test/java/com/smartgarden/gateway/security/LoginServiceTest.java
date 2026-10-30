@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-/** Bloqueo tras 5 intentos fallidos y mensaje genérico. */
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
@@ -69,7 +68,6 @@ class LoginServiceTest {
 		assertThat(admin.isLocked(NOW)).isTrue();
 		assertThat(admin.lockedMinutesRemaining(NOW)).isEqualTo(15);
 
-		// Aun con la contraseña correcta sigue bloqueada
 		assertThatThrownBy(() -> service.login("admin", GOOD_PASSWORD)).isInstanceOf(AccountLockedException.class);
 	}
 
