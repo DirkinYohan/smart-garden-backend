@@ -37,7 +37,7 @@ spring:
     create-schemas: true
   grpc:
     server:
-      port: 9092
+      port: ${PORT:9092}
       shutdown:
         grace-period: 5s
       # Allow client keepalive pings on long-lived streams.
