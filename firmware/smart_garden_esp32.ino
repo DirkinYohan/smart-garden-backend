@@ -101,7 +101,7 @@ void leerSensor() {
     delay(5);
   }
   crudo = suma / 20;
-  sensorOk = crudo >= CRUDO_MINIMO_VALIDO;
+  sensorOk = crudo > CRUDO_MINIMO_VALIDO && crudo < CRUDO_MAXIMO_VALIDO;
   humedad = constrain(map(crudo, VALOR_SECO, VALOR_MOJADO, 0, 100), 0, 100);
 }
 
