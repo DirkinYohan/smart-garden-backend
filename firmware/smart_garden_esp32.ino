@@ -230,7 +230,13 @@ void publicarTelemetria() {
 
   char buffer[384];
   size_t n = serializeJson(doc, buffer, sizeof(buffer));
-  mqtt.publish(TOPIC_TELEMETRY, (const uint8_t*)buffer, n, false);
+  bool publicado = mqtt.publish(TOPIC_TELEMETRY, (const uint8_t*)buffer, n, false);
+  if (!publicado) {
+    // El cliente se está cayendo o el buffer se llenó: se reintenta en el siguiente ciclo
+    Serial.println("No se pudo publicar la telemetría");
+    ultimaTelemetria = 0;
+    return;
+  }
   ultimaTelemetria = millis();
   ultimaHumedadEnviada = humedad;
   ultimoSensorOkEnviado = sensorOk;
