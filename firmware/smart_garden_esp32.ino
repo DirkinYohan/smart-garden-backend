@@ -246,8 +246,12 @@ void controlarRiego() {
     return;
   }
   bool puedeIniciar = !pausaLluvia || humedad < HUMEDAD_CRITICA;
-  if (!regando && humedad < umbralMin && puedeIniciar) bomba(true);
-  else if (regando && humedad > umbralMax)             bomba(false);
+  unsigned long desdeCambio = millis() - ultimoCambioBomba;
+  if (!regando && humedad < umbralMin && puedeIniciar && desdeCambio >= MIN_OFF_MS) {
+    bomba(true);
+  } else if (regando && humedad > umbralMax && desdeCambio >= MIN_ON_MS) {
+    bomba(false);
+  }
 }
 
 void mostrar() {
