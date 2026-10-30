@@ -66,10 +66,8 @@ spring:
       max-attempts: 0
 
 server:
-  # Management only (Actuator); the business API is gRPC.
+  # Management only (Actuator); the business API is gRPC on 9093.
   port: 8083
-  address: 0.0.0.0
-  shutdown: graceful
 
 management:
   endpoints:

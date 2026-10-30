@@ -52,10 +52,8 @@ spring:
           target: ${TELEMETRY_GRPC_TARGET:static://localhost:9091}
 
 server:
-  # Management only (Actuator); the business API is gRPC.
+  # Management only (Actuator); the business API is gRPC on 9092.
   port: 8082
-  address: 0.0.0.0
-  shutdown: graceful
 
 management:
   endpoints:

@@ -37,8 +37,6 @@ spring:
     create-schemas: true
   grpc:
     server:
-      # Escucha en todas las interfaces (Docker/Render no permiten 127.0.0.1)
-      address: 0.0.0.0
       # Plaintext HTTP/2 (h2c) inside the Docker network. TLS: see README "gRPC con TLS".
       port: ${PORT:9091}
       shutdown:
@@ -50,10 +48,8 @@ spring:
           without-calls: true
 
 server:
-  # Management only (Actuator); the business API is gRPC.
+  # Management only (Actuator); the business API is gRPC on 9091.
   port: 8081
-  address: 0.0.0.0
-  shutdown: graceful
 
 management:
   endpoints:

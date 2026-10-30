@@ -1,6 +1,4 @@
 spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 20s
   application:
     name: api-gateway
   profiles:
@@ -64,11 +62,6 @@ spring:
 server:
   # Render (y otros PaaS) inyectan PORT: se respeta si existe
   port: ${PORT:8080}
-  # Escucha en todas las interfaces (Docker/Render no permiten 127.0.0.1)
-  address: 0.0.0.0
-  # Apagado controlado: termina las peticiones en curso antes de cerrar
-  shutdown: graceful
-
 
 management:
   endpoints:
