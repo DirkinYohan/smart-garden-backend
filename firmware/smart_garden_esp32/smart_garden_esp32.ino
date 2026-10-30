@@ -7,9 +7,6 @@
   - OLED:       VCC -> GPIO27, GND -> GND, SDA -> GPIO21, SCL -> GPIO22
 
   Librerías: Adafruit SSD1306, Adafruit GFX, PubSubClient, ArduinoJson (v7)
-
-  El WiFi y el broker se configuran abajo, en el bloque "CONFIGURA ESTO".
-  En el repositorio van vacíos: escribe los tuyos en tu copia local.
 */
 
 #include <WiFi.h>
@@ -21,13 +18,11 @@
 #include <Adafruit_SSD1306.h>
 
 // ================== CONFIGURA ESTO ==================
-// Red WiFi de 2.4 GHz y broker MQTT. Rellena SSID y PASS en tu copia local:
-// el repositorio es público, así que aquí van vacíos a propósito.
-const char* WIFI_SSID = "";
+const char* WIFI_SSID = "";     // red de 2.4 GHz
 const char* WIFI_PASS = "";
-const char* MQTT_HOST = "192.168.0.224";
+const char* MQTT_HOST = "192.168.0.224";          // IP de tu PC con Docker
 const uint16_t MQTT_PORT = 1883;
-const char* MQTT_USER = "";   // vacío si Mosquitto es anónimo
+const char* MQTT_USER = "";                      // vacío si Mosquitto es anónimo
 const char* MQTT_PASS = "";
 const char* DEVICE_ID = "esp32-huerta-01";
 // ====================================================
@@ -41,33 +36,13 @@ const int PIN_RELE       = 26;
 const int PIN_SENSOR_VCC = 25;
 const int PIN_OLED_VCC   = 27;
 
-// Calibración del sensor (ajústala con el monitor serie):
-//   - al aire (seco)  -> VALOR_SECO
-//   - en agua         -> VALOR_MOJADO
+// Calibración del sensor (ajústala)
 const int VALOR_SECO   = 4095;
 const int VALOR_MOJADO = 1500;
-
-// Ventana de validez del ADC. El tope superior sale de la calibración: TODO el rango calibrado
-// (de VALOR_MOJADO a VALOR_SECO) es una lectura válida. Un 4000 fijo rompía el modo automático:
-// con un "seco" de 4095 la tierra seca pasaba del tope, la lectura se tomaba por avería y la
-// bomba se apagaba sin respetar los umbrales.
-const int CRUDO_MINIMO_VALIDO = 10;
-const int CRUDO_MAXIMO_VALIDO = VALOR_SECO;
-
-// Una lectura pegada al raíl solo cuenta como avería si se repite: un pico aislado del ADC no
-// debe cortar el riego.
-const uint8_t LECTURAS_RAIL_PARA_AVERIA = 5;
-
-// Si la bomba lleva este tiempo encendida y la humedad no sube, el sensor no está en la tierra.
-const unsigned long SIN_RESPUESTA_MS = 300000;
-const int MEJORA_MINIMA = 2;
+const int CRUDO_MINIMO_VALIDO = 400;
 
 const int HUMEDAD_CRITICA = 15;
 const unsigned long MANUAL_MAX_SEG   = 120;
-// Tiempos mínimos de marcha y de parada: con lecturas cada 500 ms el relé podía conmutar
-// varias veces por segundo cerca del umbral (desgaste del contacto y golpe de ariete).
-const unsigned long MIN_ON_MS        = 30000;
-const unsigned long MIN_OFF_MS       = 15000;
 const unsigned long LECTURA_MS       = 500;   // lee el sensor 2 veces por segundo
 const unsigned long TELEMETRIA_MS    = 5000;  // envío de "latido" aunque no cambie nada
 const unsigned long RECONEXION_MS    = 10000;
@@ -96,12 +71,6 @@ unsigned long ultimoIntentoMqtt = 0;
 int ultimaHumedadEnviada = -1;
 bool ultimoSensorOkEnviado = false;
 
-uint8_t lecturasEnRail = 0;
-bool sensorAveriado = false;
-int humedadAveria = 0;
-int humedadAlIniciar = 0;
-unsigned long inicioRiego = 0;
-
 void escribirRele(bool encender) {
   pinMode(PIN_RELE, OUTPUT);
   if (RELE_ACTIVO_EN_BAJO) digitalWrite(PIN_RELE, encender ? LOW : HIGH);
@@ -110,15 +79,8 @@ void escribirRele(bool encender) {
 
 void publicarTelemetria();
 
-unsigned long ultimoCambioBomba = 0;
-
 void bomba(bool encender) {
   if (encender == regando) return;
-  ultimoCambioBomba = millis();
-  if (encender) {
-    humedadAlIniciar = humedad;
-    inicioRiego = millis();
-  }
   regando = encender;
   escribirRele(encender);
   Serial.printf("Bomba %s\n", encender ? "ENCENDIDA" : "APAGADA");
@@ -132,17 +94,8 @@ void leerSensor() {
     delay(5);
   }
   crudo = suma / 20;
+  sensorOk = crudo >= CRUDO_MINIMO_VALIDO;
   humedad = constrain(map(crudo, VALOR_SECO, VALOR_MOJADO, 0, 100), 0, 100);
-
-  bool enRail = crudo <= CRUDO_MINIMO_VALIDO || crudo >= CRUDO_MAXIMO_VALIDO;
-  lecturasEnRail = enRail ? (lecturasEnRail < 255 ? lecturasEnRail + 1 : 255) : 0;
-  sensorOk = !sensorAveriado && lecturasEnRail < LECTURAS_RAIL_PARA_AVERIA;
-
-  // La avería se limpia cuando la humedad mejora de verdad: el sensor vuelve a responder.
-  if (sensorAveriado && humedad > humedadAveria + MEJORA_MINIMA) {
-    sensorAveriado = false;
-    Serial.println("Sensor recuperado");
-  }
 }
 
 void cargarConfig() {
@@ -263,13 +216,7 @@ void publicarTelemetria() {
 
   char buffer[384];
   size_t n = serializeJson(doc, buffer, sizeof(buffer));
-  bool publicado = mqtt.publish(TOPIC_TELEMETRY, (const uint8_t*)buffer, n, false);
-  if (!publicado) {
-    // El cliente se está cayendo o el buffer se llenó: se reintenta en el siguiente ciclo
-    Serial.println("No se pudo publicar la telemetría");
-    ultimaTelemetria = 0;
-    return;
-  }
+  mqtt.publish(TOPIC_TELEMETRY, (const uint8_t*)buffer, n, false);
   ultimaTelemetria = millis();
   ultimaHumedadEnviada = humedad;
   ultimoSensorOkEnviado = sensorOk;
@@ -284,23 +231,9 @@ void controlarRiego() {
     if (regando && millis() - manualInicio >= manualDuracionMs) bomba(false);
     return;
   }
-
-  // Si lleva mucho tiempo regando y la humedad no sube, el sensor no está en la tierra:
-  // se corta el riego y se marca para revisión (esto sustituye al tope fijo de 4000).
-  if (regando && millis() - inicioRiego > SIN_RESPUESTA_MS && humedad <= humedadAlIniciar + MEJORA_MINIMA) {
-    sensorAveriado = true;
-    humedadAveria = humedad;
-    Serial.println("Riego sin efecto: revisar el sensor");
-    bomba(false);
-    return;
-  }
   bool puedeIniciar = !pausaLluvia || humedad < HUMEDAD_CRITICA;
-  unsigned long desdeCambio = millis() - ultimoCambioBomba;
-  if (!regando && humedad < umbralMin && puedeIniciar && desdeCambio >= MIN_OFF_MS) {
-    bomba(true);
-  } else if (regando && humedad > umbralMax && desdeCambio >= MIN_ON_MS) {
-    bomba(false);
-  }
+  if (!regando && humedad < umbralMin && puedeIniciar) bomba(true);
+  else if (regando && humedad > umbralMax)             bomba(false);
 }
 
 void mostrar() {
@@ -358,8 +291,6 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
-  // Sin ahorro de energía: los comandos del panel llegan sin los 100-300 ms de retardo del modem sleep
-  WiFi.setSleep(false);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
