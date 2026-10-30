@@ -56,10 +56,14 @@ const char* DEVICE_ID = "esp32-huerta-01";
 
 La humedad se calcula con `map(raw, VALOR_SECO, VALOR_MOJADO, 0, 100)`, acotada a 0–100 %.
 
-> **Importante:** `raw` ≥ **4000** se considera *sensor fuera del suelo o desconectado*, igual que en el
-> backend (así lo confirmó una lectura real de 4089 con el sensor al aire). Por eso `VALOR_SECO` debe
-> quedar por debajo de 4000; si tu sensor satura en 4095 al secarse, la lectura se marcará como
-> "revisar sensor" y el riego automático no actuará.
+> **Importante:** el rango de validez del ADC se deduce de la propia calibración
+> (`CRUDO_MAXIMO_VALIDO = VALOR_SECO`), así que **todo el rango calibrado cuenta como lectura válida**.
+> Un tope fijo de 4000 rompía el modo automático cuando el "seco" era 4095: la tierra seca superaba el
+> tope, la lectura se tomaba por avería y la bomba se apagaba sin respetar los umbrales.
+>
+> Para detectar que el sensor **no está en la tierra** hay un vigilante: si la bomba lleva **5 min**
+> encendida y la humedad no sube al menos 2 puntos, se corta el riego y se marca `sensorAveriado`
+> hasta que el sensor vuelva a responder.
 
 ## Contrato MQTT
 
@@ -102,7 +106,9 @@ Se envía cada **5 s** (latido) y **en cuanto cambia** la humedad o el estado de
 
 ## Seguridad y robustez
 
-- La bomba **nunca** arranca con el sensor inválido (`sensorOk = false`).
+- La bomba **nunca** arranca con el sensor inválido (`sensorOk = false`). Una lectura en el raíl solo cuenta
+  como avería tras **5 lecturas seguidas** (2,5 s), para que un pico del ADC no corte el riego.
+- **Vigilante de riego sin efecto**: 5 min regando sin que suba la humedad → se corta y se pide revisar el sensor.
 - Tiempo mínimo de marcha (**30 s**) y de parada (**15 s**) para que el relé no repique cerca del umbral.
 - Pausa por lluvia: no se aplica si la humedad está por debajo de **15 %** (crítica), la misma regla que la IA.
 - Si el `publish` de telemetría falla, se reintenta en el siguiente ciclo.

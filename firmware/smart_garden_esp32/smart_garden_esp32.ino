@@ -47,11 +47,20 @@ const int PIN_OLED_VCC   = 27;
 const int VALOR_SECO   = 4095;
 const int VALOR_MOJADO = 1500;
 
-// Ventana de validez del ADC, la misma que aplica el backend (TelemetryPayloadParser):
-// por debajo del raíl bajo el sensor está en corto o desconectado; por encima del alto el
-// sensor está fuera del suelo o el ADC satura, y la lectura se trata como "revisar sensor".
+// Ventana de validez del ADC. El tope superior sale de la calibración: TODO el rango calibrado
+// (de VALOR_MOJADO a VALOR_SECO) es una lectura válida. Un 4000 fijo rompía el modo automático:
+// con un "seco" de 4095 la tierra seca pasaba del tope, la lectura se tomaba por avería y la
+// bomba se apagaba sin respetar los umbrales.
 const int CRUDO_MINIMO_VALIDO = 10;
-const int CRUDO_MAXIMO_VALIDO = 4000;
+const int CRUDO_MAXIMO_VALIDO = VALOR_SECO;
+
+// Una lectura pegada al raíl solo cuenta como avería si se repite: un pico aislado del ADC no
+// debe cortar el riego.
+const uint8_t LECTURAS_RAIL_PARA_AVERIA = 5;
+
+// Si la bomba lleva este tiempo encendida y la humedad no sube, el sensor no está en la tierra.
+const unsigned long SIN_RESPUESTA_MS = 300000;
+const int MEJORA_MINIMA = 2;
 
 const int HUMEDAD_CRITICA = 15;
 const unsigned long MANUAL_MAX_SEG   = 120;
@@ -87,6 +96,12 @@ unsigned long ultimoIntentoMqtt = 0;
 int ultimaHumedadEnviada = -1;
 bool ultimoSensorOkEnviado = false;
 
+uint8_t lecturasEnRail = 0;
+bool sensorAveriado = false;
+int humedadAveria = 0;
+int humedadAlIniciar = 0;
+unsigned long inicioRiego = 0;
+
 void escribirRele(bool encender) {
   pinMode(PIN_RELE, OUTPUT);
   if (RELE_ACTIVO_EN_BAJO) digitalWrite(PIN_RELE, encender ? LOW : HIGH);
@@ -100,6 +115,10 @@ unsigned long ultimoCambioBomba = 0;
 void bomba(bool encender) {
   if (encender == regando) return;
   ultimoCambioBomba = millis();
+  if (encender) {
+    humedadAlIniciar = humedad;
+    inicioRiego = millis();
+  }
   regando = encender;
   escribirRele(encender);
   Serial.printf("Bomba %s\n", encender ? "ENCENDIDA" : "APAGADA");
@@ -113,8 +132,17 @@ void leerSensor() {
     delay(5);
   }
   crudo = suma / 20;
-  sensorOk = crudo > CRUDO_MINIMO_VALIDO && crudo < CRUDO_MAXIMO_VALIDO;
   humedad = constrain(map(crudo, VALOR_SECO, VALOR_MOJADO, 0, 100), 0, 100);
+
+  bool enRail = crudo <= CRUDO_MINIMO_VALIDO || crudo >= CRUDO_MAXIMO_VALIDO;
+  lecturasEnRail = enRail ? (lecturasEnRail < 255 ? lecturasEnRail + 1 : 255) : 0;
+  sensorOk = !sensorAveriado && lecturasEnRail < LECTURAS_RAIL_PARA_AVERIA;
+
+  // La avería se limpia cuando la humedad mejora de verdad: el sensor vuelve a responder.
+  if (sensorAveriado && humedad > humedadAveria + MEJORA_MINIMA) {
+    sensorAveriado = false;
+    Serial.println("Sensor recuperado");
+  }
 }
 
 void cargarConfig() {
@@ -254,6 +282,16 @@ void controlarRiego() {
   }
   if (modo == "MANUAL") {
     if (regando && millis() - manualInicio >= manualDuracionMs) bomba(false);
+    return;
+  }
+
+  // Si lleva mucho tiempo regando y la humedad no sube, el sensor no está en la tierra:
+  // se corta el riego y se marca para revisión (esto sustituye al tope fijo de 4000).
+  if (regando && millis() - inicioRiego > SIN_RESPUESTA_MS && humedad <= humedadAlIniciar + MEJORA_MINIMA) {
+    sensorAveriado = true;
+    humedadAveria = humedad;
+    Serial.println("Riego sin efecto: revisar el sensor");
+    bomba(false);
     return;
   }
   bool puedeIniciar = !pausaLluvia || humedad < HUMEDAD_CRITICA;
