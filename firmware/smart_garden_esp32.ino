@@ -90,8 +90,11 @@ void escribirRele(bool encender) {
 
 void publicarTelemetria();
 
+unsigned long ultimoCambioBomba = 0;
+
 void bomba(bool encender) {
   if (encender == regando) return;
+  ultimoCambioBomba = millis();
   regando = encender;
   escribirRele(encender);
   Serial.printf("Bomba %s\n", encender ? "ENCENDIDA" : "APAGADA");
