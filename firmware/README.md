@@ -1,7 +1,8 @@
 # Firmware del ESP32
 
 Riego local con sensor de humedad, pantalla OLED y conexión MQTT al stack de Smart Garden.
-El ESP32 decide **cuándo** abrir la válvula; el backend solo le manda los umbrales y la orden manual.
+El dispositivo recibe del backend los umbrales la orden manual, y **decide localmente** cuándo abrir la
+válvula: así sigue regando aunque se caiga la red.
 
 ## Conexiones
 
@@ -15,16 +16,14 @@ Librerías: **Adafruit SSD1306**, **Adafruit GFX**, **PubSubClient**, **ArduinoJ
 
 ## Cómo abrirlo y compilarlo
 
-El sketch es **un solo archivo** y ya trae la configuración dentro:
-
 ```
 firmware/
+├─ README.md
 └─ smart_garden_esp32/
    └─ smart_garden_esp32.ino     ← ábrelo con el IDE de Arduino
 ```
 
-La carpeta se llama igual que el archivo (`smart_garden_esp32`) porque el IDE de Arduino exige esa
-correspondencia para abrir el sketch sin errores. Placa: **ESP32 Dev Module**.
+La carpeta se llama igual que el archivo porque el IDE exige esa correspondencia. Placa: **ESP32 Dev Module**.
 
 ## Credenciales
 
@@ -40,8 +39,8 @@ const char* MQTT_PASS = "";
 const char* DEVICE_ID = "esp32-huerta-01";
 ```
 
-> El repositorio es público: `WIFI_SSID` y `WIFI_PASS` van **vacíos** en lo que se publica. Rellénalos en
-> tu copia y evita subirlos. Para que Git no te los vuelva a pedir en cada `git status`:
+> El repositorio es público: en lo publicado `WIFI_SSID` y `WIFI_PASS` van vacíos. Rellénalos en tu copia y
+> evita subirlos. Para que Git no te los pida en cada `git status`:
 >
 > ```bash
 > git update-index --skip-worktree firmware/smart_garden_esp32/smart_garden_esp32.ino
@@ -50,20 +49,25 @@ const char* DEVICE_ID = "esp32-huerta-01";
 ## Calibración del sensor
 
 1. Abre el monitor serie a **115200 baudios**.
-2. Con el sensor **al aire** (seco del todo), anota el valor `raw` que imprime la telemetría → `VALOR_SECO`.
-3. Con el sensor **en un vaso de agua**, anota ese `raw` → `VALOR_MOJADO`.
+2. Con el sensor **al aire**, anota el `raw` → `VALOR_SECO`.
+3. Con el sensor **en agua**, anota el `raw` → `VALOR_MOJADO`.
 4. Ajusta las dos constantes y vuelve a flashear.
 
-La humedad se calcula con `map(raw, VALOR_SECO, VALOR_MOJADO, 0, 100)`, acotada a 0–100 %.
+La humedad es `map(raw, VALOR_SECO, VALOR_MOJADO, 0, 100)` acotada a 0–100 %.
+Si `raw < 400` (`CRUDO_MINIMO_VALIDO`) se considera que el sensor está desconectado o en corto.
 
-> **Importante:** el rango de validez del ADC se deduce de la propia calibración
-> (`CRUDO_MAXIMO_VALIDO = VALOR_SECO`), así que **todo el rango calibrado cuenta como lectura válida**.
-> Un tope fijo de 4000 rompía el modo automático cuando el "seco" era 4095: la tierra seca superaba el
-> tope, la lectura se tomaba por avería y la bomba se apagaba sin respetar los umbrales.
->
-> Para detectar que el sensor **no está en la tierra** hay un vigilante: si la bomba lleva **5 min**
-> encendida y la humedad no sube al menos 2 puntos, se corta el riego y se marca `sensorAveriado`
-> hasta que el sensor vuelva a responder.
+## Reglas que aplica el sketch
+
+| Regla | Condición |
+|---|---|
+| Abrir la válvula (AUTO e IA) | `humedad < umbralMin` y no hay pausa por lluvia |
+| Excepción a la pausa por lluvia | se riega igual si `humedad < 15 %` (crítica) |
+| Cerrar la válvula (AUTO e IA) | `humedad > umbralMax` |
+| Sensor inválido | la bomba se apaga (`raw < 400`) |
+| Orden manual | solo en modo `MANUAL`; `durationSec` acotado a 1–120 s y apagado automático al cumplirse |
+| Cambio de modo | apaga la bomba |
+| CONFIG inválida | se ignora (modo desconocido, `min < 0`, `max > 100` o `max - min < 10`) |
+| Configuración | se guarda en NVS y sobrevive a reinicios |
 
 ## Contrato MQTT
 
@@ -84,16 +88,16 @@ La humedad se calcula con `map(raw, VALOR_SECO, VALOR_MOJADO, 0, 100)`, acotada 
 }
 ```
 
-Se envía cada **5 s** (latido) y **en cuanto cambia** la humedad o el estado del sensor.
+Cada **5 s** (latido) y **en cuanto cambia** la humedad o el estado del sensor.
 
 ### Estado → `smartgarden/esp32/status` (retenido)
 
-`online` al conectar, `offline` como *last will* del broker.
+`online` al conectar y `offline` como *last will* del broker.
 
 ### Comandos ← `smartgarden/esp32/commands` (QoS 1)
 
 ```json
-{ "type": "CONFIG", "mode": "AUTO", "minMoisture": 30, "maxMoisture": 70, "rainPause": true }
+{ "type": "CONFIG", "mode": "AUTO", "minMoisture": 33, "maxMoisture": 80, "rainPause": false }
 ```
 
 ```json
@@ -101,15 +105,4 @@ Se envía cada **5 s** (latido) y **en cuanto cambia** la humedad o el estado de
 ```
 
 - `CONFIG` llega **retenido**: el dispositivo lo recibe al reconectar.
-- `PUMP` solo se atiende en modo `MANUAL` y con `durationSec` entre 1 y **120** (el backend aplica el mismo tope).
-- Valores inválidos (modo desconocido o `max - min < 10`) se ignoran con un aviso por el puerto serie.
-
-## Seguridad y robustez
-
-- La bomba **nunca** arranca con el sensor inválido (`sensorOk = false`). Una lectura en el raíl solo cuenta
-  como avería tras **5 lecturas seguidas** (2,5 s), para que un pico del ADC no corte el riego.
-- **Vigilante de riego sin efecto**: 5 min regando sin que suba la humedad → se corta y se pide revisar el sensor.
-- Tiempo mínimo de marcha (**30 s**) y de parada (**15 s**) para que el relé no repique cerca del umbral.
-- Pausa por lluvia: no se aplica si la humedad está por debajo de **15 %** (crítica), la misma regla que la IA.
-- Si el `publish` de telemetría falla, se reintenta en el siguiente ciclo.
-- Sin ahorro de energía del WiFi, para que los comandos del panel lleguen sin retardo.
+- `PUMP` solo se atiende en modo `MANUAL`.
