@@ -34,3 +34,6 @@ build/
 
 ### Environment ###
 .env
+
+### Firmware ###
+firmware/secrets.h
