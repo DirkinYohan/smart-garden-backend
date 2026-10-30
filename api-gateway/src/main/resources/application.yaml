@@ -60,8 +60,7 @@ spring:
             without-calls: true
 
 server:
-  # Render (y otros PaaS) inyectan PORT: se respeta si existe
-  port: ${PORT:8080}
+  port: 8080
 
 management:
   endpoints:

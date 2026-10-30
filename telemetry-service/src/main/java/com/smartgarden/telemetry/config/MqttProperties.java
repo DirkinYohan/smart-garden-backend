@@ -1,13 +1,11 @@
 package com.smartgarden.telemetry.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties("smartgarden.mqtt")
 public record MqttProperties(
 		String host,
 		int port,
-		@DefaultValue("tcp") String scheme,
 		String username,
 		String password,
 		String clientId,
@@ -17,7 +15,7 @@ public record MqttProperties(
 		int qos) {
 
 	public String serverUri() {
-		return scheme + "://" + host + ":" + port;
+		return "tcp://" + host + ":" + port;
 	}
 
 	public boolean hasCredentials() {

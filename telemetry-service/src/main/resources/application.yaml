@@ -38,7 +38,7 @@ spring:
   grpc:
     server:
       # Plaintext HTTP/2 (h2c) inside the Docker network. TLS: see README "gRPC con TLS".
-      port: ${PORT:9091}
+      port: 9091
       shutdown:
         grace-period: 5s
       # Allow client keepalive pings on long-lived streams.
@@ -64,8 +64,6 @@ smartgarden:
   mqtt:
     host: ${MQTT_HOST:localhost}
     port: ${MQTT_PORT:1883}
-    # tcp para un broker local; ssl para uno gestionado (HiveMQ Cloud, EMQX Cloud...) con el puerto 8883
-    scheme: ${MQTT_SCHEME:tcp}
     username: ${MQTT_USERNAME:}
     password: ${MQTT_PASSWORD:}
     client-id: telemetry-service-${random.uuid}
