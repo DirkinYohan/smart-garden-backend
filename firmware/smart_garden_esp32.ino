@@ -43,10 +43,10 @@ const int VALOR_SECO   = 4095;
 const int VALOR_MOJADO = 1500;
 
 // Ventana de validez del ADC, la misma que aplica el backend (TelemetryPayloadParser):
-// por debajo del raíl bajo el sensor está en corto o desconectado; por encima del alto
-// el ADC satura y la lectura no distingue "seco" de "sin sensor".
+// por debajo del raíl bajo el sensor está en corto o desconectado; por encima del alto el
+// sensor está fuera del suelo o el ADC satura, y la lectura se trata como "revisar sensor".
 const int CRUDO_MINIMO_VALIDO = 10;
-const int CRUDO_MAXIMO_VALIDO = 4090;
+const int CRUDO_MAXIMO_VALIDO = 4000;
 
 const int HUMEDAD_CRITICA = 15;
 const unsigned long MANUAL_MAX_SEG   = 120;
