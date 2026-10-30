@@ -22,7 +22,7 @@ services:
         - grpc-contracts/**
         - common/**
     runtime: docker
-    plan: free
+    plan: starter
     region: oregon
     dockerfilePath: ./api-gateway/Dockerfile
     dockerContext: .
