@@ -315,6 +315,8 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
+  // Sin ahorro de energía: los comandos del panel llegan sin los 100-300 ms de retardo del modem sleep
+  WiFi.setSleep(false);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
