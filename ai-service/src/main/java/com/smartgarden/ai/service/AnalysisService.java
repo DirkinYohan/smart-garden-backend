@@ -67,8 +67,6 @@ public class AnalysisService {
 
 	private final Object configGate = new Object();
 
-	private Instant lastManualRequest;
-
 	private Instant lastConfigAnalysis;
 
 	private volatile String lastAnalyzedFingerprint;
@@ -109,17 +107,8 @@ public class AnalysisService {
 	public record ScheduledRun(boolean ran, String detail) {
 	}
 
+	/** Manual analysis: the user can ask for one whenever they want (no rate limit). */
 	public AnalysisView requestAnalysis() {
-		synchronized (this) {
-			Instant now = clock.instant();
-			Duration cooldown = aiProps.manualRequestCooldown();
-			if (lastManualRequest != null && now.isBefore(lastManualRequest.plus(cooldown))) {
-				long wait = Duration.between(now, lastManualRequest.plus(cooldown)).toSeconds() + 1;
-				throw new RateLimitedException(
-						"Solo se permite un análisis manual por minuto. Intenta de nuevo en " + wait + " s");
-			}
-			lastManualRequest = now;
-		}
 		return analyze(inputCollector.collect(), TRIGGER_MANUAL);
 	}
 

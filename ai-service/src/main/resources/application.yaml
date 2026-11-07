@@ -86,8 +86,6 @@ smartgarden:
     scheduler-enabled: ${AI_SCHEDULER_ENABLED:true}
     # Stream of config changes from irrigation-service. Azure: false, the api-gateway notifies the change instead.
     config-watch-enabled: ${AI_CONFIG_WATCH_ENABLED:true}
-    # RequestAnalysis can be called at most once per window (free-tier quota).
-    manual-request-cooldown: 1m
     # Azure (scale to zero): raise it so a call can wait for a cold start of irrigation-service.
     grpc-deadline: ${AI_GRPC_DEADLINE:5s}
     # Max wait for Gemini per analysis, shared by all the models tried (the gateway waits up to 45 s).

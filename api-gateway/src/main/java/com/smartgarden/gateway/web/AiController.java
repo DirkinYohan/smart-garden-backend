@@ -42,7 +42,7 @@ public class AiController {
 	}
 
 	@PostMapping("/ai/analysis")
-	@Operation(summary = "Solicita un análisis inmediato (máximo uno por minuto, 429 si se excede)")
+	@Operation(summary = "Solicita un análisis inmediato (sin límite de frecuencia)")
 	public AnalysisDto request() {
 		return grpc.requestAnalysis();
 	}
