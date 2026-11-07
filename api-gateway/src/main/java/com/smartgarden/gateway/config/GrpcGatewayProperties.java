@@ -12,10 +12,12 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param notifyAiOnConfigChange after a successful {@code PUT /config}, ask ai-service for an analysis
  * ({@code RequestAnalysis(reason = CONFIG_CHANGED)}). Used when ai-service does not watch the config stream.
  * @param configChangeDebounce wait after the last config change before notifying ai-service.
+ * @param streamRotateAfter renew each relay stream after this long, before a proxy cuts it (Azure Container Apps
+ * ends requests after 240 s). 0 = never.
  */
 @ConfigurationProperties("smartgarden.grpc")
 public record GrpcGatewayProperties(Duration deadline, Duration streamInitialBackoff, Duration streamMaxBackoff,
 		@DefaultValue("true") boolean streamsEnabled, @DefaultValue("false") boolean streamsOnDemand,
 		@DefaultValue("30s") Duration streamsIdleGrace, @DefaultValue("false") boolean notifyAiOnConfigChange,
-		@DefaultValue("10s") Duration configChangeDebounce) {
+		@DefaultValue("10s") Duration configChangeDebounce, @DefaultValue("0s") Duration streamRotateAfter) {
 }

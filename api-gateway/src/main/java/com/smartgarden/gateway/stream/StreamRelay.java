@@ -144,22 +144,22 @@ public class StreamRelay {
 				(ctx, obs) -> ctx.run(() -> telemetry.withWaitForReady()
 					.streamTelemetry(StreamTelemetryRequest.getDefaultInstance(), obs)),
 				r -> broker.convertAndSend("/topic/telemetry", DtoMapper.reading(r)), scheduler,
-				props.streamInitialBackoff(), props.streamMaxBackoff()));
+				props.streamInitialBackoff(), props.streamMaxBackoff(), props.streamRotateAfter()));
 		streams.add(new ResilientStream<DeviceStatusEvent>("device-status",
 				(ctx, obs) -> ctx.run(() -> telemetry.withWaitForReady()
 					.streamDeviceStatus(StreamDeviceStatusRequest.getDefaultInstance(), obs)),
 				e -> broker.convertAndSend("/topic/device-status", DtoMapper.deviceStatus(e)), scheduler,
-				props.streamInitialBackoff(), props.streamMaxBackoff()));
+				props.streamInitialBackoff(), props.streamMaxBackoff(), props.streamRotateAfter()));
 		streams.add(new ResilientStream<IrrigationConfig>("config",
 				(ctx, obs) -> ctx.run(() -> irrigation.withWaitForReady()
 					.streamConfigChanges(StreamConfigChangesRequest.getDefaultInstance(), obs)),
 				c -> broker.convertAndSend("/topic/config", DtoMapper.config(c)), scheduler,
-				props.streamInitialBackoff(), props.streamMaxBackoff()));
+				props.streamInitialBackoff(), props.streamMaxBackoff(), props.streamRotateAfter()));
 		streams.add(new ResilientStream<Analysis>("analysis",
 				(ctx, obs) -> ctx.run(
 						() -> ai.withWaitForReady().streamAnalyses(StreamAnalysesRequest.getDefaultInstance(), obs)),
 				a -> broker.convertAndSend("/topic/analysis", DtoMapper.analysis(a)), scheduler,
-				props.streamInitialBackoff(), props.streamMaxBackoff()));
+				props.streamInitialBackoff(), props.streamMaxBackoff(), props.streamRotateAfter()));
 		streams.forEach(ResilientStream::start);
 	}
 

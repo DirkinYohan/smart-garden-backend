@@ -127,6 +127,8 @@ module gateway 'modules/service.bicep' = {
       // Unary calls may have to wait for a cold start of irrigation-service or ai-service.
       { name: 'GRPC_DEADLINE', value: '90s' }
       { name: 'GRPC_STREAMS_ON_DEMAND', value: 'true' }
+      // The ingress ends every request after 240 s: renew the gRPC streams before that.
+      { name: 'GRPC_STREAM_ROTATE_AFTER', value: '180s' }
       { name: 'NOTIFY_AI_ON_CONFIG_CHANGE', value: 'true' }
       { name: 'CORS_ALLOWED_ORIGINS', value: corsAllowedOrigins }
       { name: 'ADMIN_USERNAME', value: adminUsername }

@@ -106,6 +106,8 @@ smartgarden:
     # Azure: ai-service does not watch the config stream; the gateway asks it for an analysis after PUT /config.
     notify-ai-on-config-change: ${NOTIFY_AI_ON_CONFIG_CHANGE:false}
     config-change-debounce: 10s
+    # Azure: renew the relay streams before the ingress ends them at 240 s (no reconnect gap).
+    stream-rotate-after: ${GRPC_STREAM_ROTATE_AFTER:0s}
 
 logging:
   level:

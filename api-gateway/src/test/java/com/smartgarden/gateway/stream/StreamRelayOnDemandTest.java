@@ -34,7 +34,7 @@ class StreamRelayOnDemandTest {
 		// Nothing listens on port 1: the streams just keep retrying, which is enough here.
 		channel = ManagedChannelBuilder.forTarget("127.0.0.1:1").usePlaintext().build();
 		GrpcGatewayProperties props = new GrpcGatewayProperties(Duration.ofSeconds(2), Duration.ofSeconds(1),
-				Duration.ofSeconds(5), true, true, Duration.ofMillis(200), false, Duration.ofSeconds(10));
+				Duration.ofSeconds(5), true, true, Duration.ofMillis(200), false, Duration.ofSeconds(10), Duration.ZERO);
 		relay = new StreamRelay(TelemetryServiceGrpc.newStub(channel), IrrigationServiceGrpc.newStub(channel),
 				AiServiceGrpc.newStub(channel), mock(SimpMessagingTemplate.class), props);
 	}
