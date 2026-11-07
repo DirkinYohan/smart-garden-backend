@@ -71,10 +71,11 @@ cmd_login_registry() {
 build_one() {
 	local svc="$1" image; image="$(image_of "$svc")"
 	log "build + push $image"
-	docker buildx build --platform linux/amd64 -f "$BACKEND/$(dockerfile_of "$svc")" \
+	# Docker Desktop is a Windows program: give it Windows paths (MSYS_NO_PATHCONV is on).
+	docker buildx build --platform linux/amd64 -f "$(cygpath -w "$BACKEND/$(dockerfile_of "$svc")")" \
 		--label "org.opencontainers.image.source=https://github.com/DirkinYohan/smart-garden-backend" \
 		--label "org.opencontainers.image.revision=$TAG" \
-		-t "$image" --push "$BACKEND"
+		-t "$image" --push "$(cygpath -w "$BACKEND")"
 }
 
 cmd_build() {
