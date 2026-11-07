@@ -62,11 +62,18 @@ smartgarden:
   # Autenticación entre servicios (cabecera gRPC x-internal-token). Vacío = desactivada.
   internal-token: ${INTERNAL_TOKEN:}
   mqtt:
+    # Production (EMQX Cloud Serverless, TLS only): MQTT_URL=ssl://xxxx.ala.us-east-1.emqxsl.com:8883. Empty = tcp://MQTT_HOST:MQTT_PORT.
+    url: ${MQTT_URL:}
     host: ${MQTT_HOST:localhost}
     port: ${MQTT_PORT:1883}
     username: ${MQTT_USERNAME:}
     password: ${MQTT_PASSWORD:}
-    client-id: telemetry-service-${random.uuid}
+    # Production: a fixed, unique id (the adapters add -sub / -pub) with a persistent session.
+    client-id: ${MQTT_CLIENT_ID:telemetry-service-${random.uuid}}
+    clean-session: ${MQTT_CLEAN_SESSION:true}
+    # Retained CONFIG is published again this often (managed brokers may expire retained messages).
+    retained-refresh-interval: 24h
+    retained-refresh-online-after: 12h
     telemetry-topic: smartgarden/esp32/telemetry
     status-topic: smartgarden/esp32/status
     commands-topic: smartgarden/esp32/commands

@@ -25,8 +25,11 @@ public class MqttInboundHandler {
 
 	private final Clock clock;
 
+	private final RetainedConfigRefresher retainedConfig;
+
 	public MqttInboundHandler(MqttProperties props, TelemetryPayloadParser parser, TelemetryIngestionService ingestion,
-			DeviceStatusTracker statusTracker, Clock clock) {
+			DeviceStatusTracker statusTracker, Clock clock, RetainedConfigRefresher retainedConfig) {
+		this.retainedConfig = retainedConfig;
 		this.props = props;
 		this.parser = parser;
 		this.ingestion = ingestion;
@@ -45,7 +48,11 @@ public class MqttInboundHandler {
 				if (payload.isBlank()) {
 					return;
 				}
-				statusTracker.onStatusMessage(TelemetryPayloadParser.parseStatus(payload));
+				String status = TelemetryPayloadParser.parseStatus(payload);
+				statusTracker.onStatusMessage(status);
+				if ("online".equals(status)) {
+					retainedConfig.onDeviceOnline();
+				}
 			}
 			else {
 				log.debug("Ignoring message on unexpected topic {}", topic);

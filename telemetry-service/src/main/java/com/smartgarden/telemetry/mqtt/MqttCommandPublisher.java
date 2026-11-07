@@ -19,9 +19,14 @@ public class MqttCommandPublisher {
 
 	private final MqttProperties props;
 
-	public MqttCommandPublisher(MqttPahoMessageHandler outbound, MqttProperties props) {
+	private final RetainedConfigRefresher refresher;
+
+	public MqttCommandPublisher(MqttPahoMessageHandler outbound, MqttProperties props,
+			RetainedConfigRefresher refresher) {
 		this.outbound = outbound;
 		this.props = props;
+		this.refresher = refresher;
+		refresher.attach(this);
 	}
 
 	public String publish(DeviceCommand command) {
@@ -32,6 +37,7 @@ public class MqttCommandPublisher {
 			.build());
 		log.info("Published command to {} (retained={}): {}", props.commandsTopic(), command.retained(),
 				command.payload());
+		refresher.remember(command);
 		return props.commandsTopic();
 	}
 

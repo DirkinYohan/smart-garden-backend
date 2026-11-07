@@ -13,11 +13,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Keeps a {@code StreamConfigChanges} stream open to irrigation-service and analyses after a change. An open stream
+ * would keep both services awake, so in Azure it is disabled ({@code AI_CONFIG_WATCH_ENABLED=false}) and the
+ * api-gateway calls {@code RequestAnalysis(reason = CONFIG_CHANGED)} after a successful {@code PUT /config}.
+ */
 @Component
+@ConditionalOnProperty(name = "smartgarden.ai.config-watch-enabled", havingValue = "true", matchIfMissing = true)
 public class ConfigChangeWatcher {
 
 	private static final Logger log = LoggerFactory.getLogger(ConfigChangeWatcher.class);

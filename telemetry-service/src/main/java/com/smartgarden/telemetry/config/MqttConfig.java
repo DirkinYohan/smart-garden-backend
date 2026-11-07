@@ -27,7 +27,7 @@ public class MqttConfig {
 		MqttConnectOptions options = new MqttConnectOptions();
 		options.setServerURIs(new String[] { props.serverUri() });
 		options.setAutomaticReconnect(true);
-		options.setCleanSession(true);
+		options.setCleanSession(props.cleanSession());
 		options.setConnectionTimeout(10);
 		options.setKeepAliveInterval(30);
 		if (props.hasCredentials()) {
@@ -36,7 +36,7 @@ public class MqttConfig {
 		}
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 		factory.setConnectionOptions(options);
-		log.info("MQTT broker: {}", props.serverUri());
+		log.info("MQTT broker: {} (cleanSession={})", props.serverUri(), props.cleanSession());
 		return factory;
 	}
 

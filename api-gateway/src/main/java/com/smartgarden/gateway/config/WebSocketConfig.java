@@ -4,6 +4,7 @@ import com.smartgarden.gateway.security.StompAuthChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -28,7 +29,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
-		registry.enableSimpleBroker("/topic");
+		// STOMP heartbeats every 10 s in both directions: keep the WebSocket busy so proxies and the Azure
+		// Container Apps ingress do not close it as idle, and detect dead clients.
+		ThreadPoolTaskScheduler heartbeats = new ThreadPoolTaskScheduler();
+		heartbeats.setPoolSize(1);
+		heartbeats.setThreadNamePrefix("stomp-heartbeat-");
+		heartbeats.setDaemon(true);
+		heartbeats.initialize();
+		registry.enableSimpleBroker("/topic").setHeartbeatValue(new long[] { 10_000, 10_000 })
+			.setTaskScheduler(heartbeats);
 		registry.setApplicationDestinationPrefixes("/app");
 	}
 

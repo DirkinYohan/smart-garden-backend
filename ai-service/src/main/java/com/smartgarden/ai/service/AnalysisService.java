@@ -28,7 +28,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
@@ -87,20 +86,27 @@ public class AnalysisService {
 		this.clock = clock;
 	}
 
-	@Scheduled(fixedDelayString = "${smartgarden.ai.analysis-interval:30m}",
-			initialDelayString = "${smartgarden.ai.analysis-initial-delay:2m}")
-	public void runScheduled() {
+	/**
+	 * Periodic analysis. Called by {@link AnalysisScheduler} (local / Docker) or by the
+	 * {@code RunScheduledAnalysis} RPC (Azure Container Apps Job, when the service scales to zero).
+	 */
+	public ScheduledRun runScheduled() {
 		try {
 			AnalysisContext ctx = inputCollector.collect();
 			if (ctx.input().configAvailable() && !ctx.input().aiEnabled()) {
 				log.info("Scheduled analysis skipped: AI is disabled in the irrigation config");
-				return;
+				return new ScheduledRun(false, "IA desactivada en la configuración de riego");
 			}
-			analyze(ctx, TRIGGER_SCHEDULED);
+			AnalysisView view = analyze(ctx, TRIGGER_SCHEDULED);
+			return new ScheduledRun(true, "Análisis " + view.id() + " (" + view.source() + ")");
 		}
 		catch (RuntimeException ex) {
 			log.error("Scheduled analysis failed", ex);
+			return new ScheduledRun(false, "Falló: " + ex.getMessage());
 		}
+	}
+
+	public record ScheduledRun(boolean ran, String detail) {
 	}
 
 	public AnalysisView requestAnalysis() {

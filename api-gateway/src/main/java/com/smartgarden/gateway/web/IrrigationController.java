@@ -8,6 +8,7 @@ import com.smartgarden.gateway.dto.PumpResponse;
 import com.smartgarden.gateway.dto.PumpStartRequest;
 import com.smartgarden.gateway.dto.UpdateConfigRequest;
 import com.smartgarden.gateway.grpc.GardenGrpcClient;
+import com.smartgarden.gateway.stream.ConfigChangeNotifier;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,8 +32,11 @@ public class IrrigationController {
 
 	private final GardenGrpcClient grpc;
 
-	public IrrigationController(GardenGrpcClient grpc) {
+	private final ConfigChangeNotifier configChanges;
+
+	public IrrigationController(GardenGrpcClient grpc, ConfigChangeNotifier configChanges) {
 		this.grpc = grpc;
+		this.configChanges = configChanges;
 	}
 
 	@GetMapping("/config")
@@ -44,7 +48,9 @@ public class IrrigationController {
 	@PutMapping("/config")
 	@Operation(summary = "Actualiza modo, cultivo, umbrales, rainPause o aiEnabled (solo los campos enviados)")
 	public ConfigDto updateConfig(@Valid @RequestBody UpdateConfigRequest request) {
-		return grpc.updateConfig(request);
+		ConfigDto updated = grpc.updateConfig(request);
+		configChanges.configChanged();
+		return updated;
 	}
 
 	@GetMapping("/crops")

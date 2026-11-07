@@ -95,10 +95,17 @@ smartgarden:
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
   grpc:
-    deadline: 10s
+    # Deadline of the unary calls. Azure (scale to zero): raise it so a call can wait for a cold start.
+    deadline: ${GRPC_DEADLINE:10s}
     # Backoff used to re-open the gRPC streams when a service restarts.
     stream-initial-backoff: 1s
     stream-max-backoff: 30s
+    # Azure: open the streams only while WebSocket clients are connected (lets the services scale to zero).
+    streams-on-demand: ${GRPC_STREAMS_ON_DEMAND:false}
+    streams-idle-grace: 30s
+    # Azure: ai-service does not watch the config stream; the gateway asks it for an analysis after PUT /config.
+    notify-ai-on-config-change: ${NOTIFY_AI_ON_CONFIG_CHANGE:false}
+    config-change-debounce: 10s
 
 logging:
   level:

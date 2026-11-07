@@ -82,6 +82,10 @@ smartgarden:
   ai:
     analysis-interval: ${AI_ANALYSIS_INTERVAL:30m}
     analysis-initial-delay: ${AI_ANALYSIS_INITIAL_DELAY:2m}
+    # In-process @Scheduled analysis. Azure (scale to zero): false, a Container Apps Job calls RunScheduledAnalysis.
+    scheduler-enabled: ${AI_SCHEDULER_ENABLED:true}
+    # Stream of config changes from irrigation-service. Azure: false, the api-gateway notifies the change instead.
+    config-watch-enabled: ${AI_CONFIG_WATCH_ENABLED:true}
     # RequestAnalysis can be called at most once per window (free-tier quota).
     manual-request-cooldown: 1m
     grpc-deadline: 5s

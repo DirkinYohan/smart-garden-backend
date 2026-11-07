@@ -13,8 +13,12 @@ service AiService {
   // NOT_FOUND when no analysis has been produced yet.
   rpc GetLatestAnalysis(GetLatestAnalysisRequest) returns (Analysis);
   rpc ListAnalyses(ListAnalysesRequest) returns (ListAnalysesResponse);
-  // Runs an analysis now. RESOURCE_EXHAUSTED if called more than once per minute.
+  // Runs an analysis now. With reason MANUAL (default): RESOURCE_EXHAUSTED if called more than once per minute.
+  // With reason CONFIG_CHANGED: debounced and spaced like the config watcher; when the configuration was
+  // already analysed it returns the latest analysis (NOT_FOUND if there is none yet).
   rpc RequestAnalysis(RequestAnalysisRequest) returns (Analysis);
+  // Periodic analysis triggered from outside (Azure Container Apps Job) when the in-process scheduler is off.
+  rpc RunScheduledAnalysis(RunScheduledAnalysisRequest) returns (RunScheduledAnalysisResponse);
   rpc GetWeather(GetWeatherRequest) returns (Weather);
   rpc StreamAnalyses(StreamAnalysesRequest) returns (stream Analysis);
   // Aggregates of the last 7 or 30 days.
@@ -256,7 +260,26 @@ message ListAnalysesResponse {
   repeated Analysis analyses = 1;
 }
 
-message RequestAnalysisRequest {}
+enum AnalysisReason {
+  ANALYSIS_REASON_UNSPECIFIED = 0;
+  // A user asked for it (rate limited to one per minute).
+  ANALYSIS_REASON_MANUAL = 1;
+  // The irrigation configuration (crop, thresholds, mode) changed.
+  ANALYSIS_REASON_CONFIG_CHANGED = 2;
+}
+
+message RequestAnalysisRequest {
+  // UNSPECIFIED behaves like MANUAL.
+  AnalysisReason reason = 1;
+}
+
+message RunScheduledAnalysisRequest {}
+
+message RunScheduledAnalysisResponse {
+  // false when skipped (AI disabled in the irrigation config) or when the analysis failed.
+  bool ran = 1;
+  string detail = 2;
+}
 
 message GetWeatherRequest {}
 

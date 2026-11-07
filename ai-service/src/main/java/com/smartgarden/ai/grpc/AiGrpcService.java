@@ -11,7 +11,11 @@ import com.smartgarden.contracts.ai.v1.GetLatestAnalysisRequest;
 import com.smartgarden.contracts.ai.v1.GetWeatherRequest;
 import com.smartgarden.contracts.ai.v1.ListAnalysesRequest;
 import com.smartgarden.contracts.ai.v1.ListAnalysesResponse;
+import com.smartgarden.ai.domain.AnalysisView;
+import com.smartgarden.contracts.ai.v1.AnalysisReason;
 import com.smartgarden.contracts.ai.v1.RequestAnalysisRequest;
+import com.smartgarden.contracts.ai.v1.RunScheduledAnalysisRequest;
+import com.smartgarden.contracts.ai.v1.RunScheduledAnalysisResponse;
 import com.smartgarden.contracts.ai.v1.StreamAnalysesRequest;
 import com.smartgarden.contracts.ai.v1.Weather;
 import io.grpc.stub.StreamObserver;
@@ -53,7 +57,24 @@ public class AiGrpcService extends AiServiceGrpc.AiServiceImplBase {
 
 	@Override
 	public void requestAnalysis(RequestAnalysisRequest request, StreamObserver<Analysis> responseObserver) {
-		responseObserver.onNext(ProtoMapper.analysis(analyses.requestAnalysis()));
+		AnalysisView view;
+		if (request.getReason() == AnalysisReason.ANALYSIS_REASON_CONFIG_CHANGED) {
+			AnalysisView fresh = analyses.requestConfigAnalysis();
+			view = fresh != null ? fresh : analyses.latest();
+		}
+		else {
+			view = analyses.requestAnalysis();
+		}
+		responseObserver.onNext(ProtoMapper.analysis(view));
+		responseObserver.onCompleted();
+	}
+
+	@Override
+	public void runScheduledAnalysis(RunScheduledAnalysisRequest request,
+			StreamObserver<RunScheduledAnalysisResponse> responseObserver) {
+		AnalysisService.ScheduledRun run = analyses.runScheduled();
+		responseObserver
+			.onNext(RunScheduledAnalysisResponse.newBuilder().setRan(run.ran()).setDetail(run.detail()).build());
 		responseObserver.onCompleted();
 	}
 
