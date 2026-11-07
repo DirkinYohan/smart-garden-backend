@@ -234,6 +234,8 @@ module ai 'modules/service.bicep' = {
       // No @Scheduled and no config stream: the job and the gateway wake the service when needed.
       { name: 'AI_SCHEDULER_ENABLED', value: 'false' }
       { name: 'AI_CONFIG_WATCH_ENABLED', value: 'false' }
+      // Calls to irrigation-service / telemetry-service may wait for a cold start.
+      { name: 'AI_GRPC_DEADLINE', value: '60s' }
       { name: 'GEMINI_MODEL', value: geminiModel }
       { name: 'GEMINI_FALLBACK_MODELS', value: geminiFallbackModels }
     ])

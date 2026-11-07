@@ -69,8 +69,8 @@ cada 30 s, todos en el puerto de gestión.
 
 Requisitos: Azure CLI (`az login --use-device-code`), Docker Desktop y GitHub CLI (`gh auth login --web --scopes
 write:packages,workflow`). Variables en `smart-garden-backend/.env` (nunca en git): las de Supabase, `GEMINI_API_KEY`,
-`JWT_SECRET`, `ADMIN_PASSWORD`, `WEATHER_LAT/LON`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD` y, para el firmware,
-`MQTT_DEVICE_USERNAME`, `MQTT_DEVICE_PASSWORD`.
+`JWT_SECRET`, `ADMIN_PASSWORD`, `WEATHER_LAT/LON`, `MQTT_URL`, `MQTT_USERNAME` y `MQTT_PASSWORD`.
+Las credenciales del ESP32 van en `firmware-smart-garden/smart_garden_esp32/secrets.h` (ignorado por git).
 
 ```bash
 infra/azure/aca.sh check                 # sesiones y variables
@@ -118,7 +118,8 @@ Logs: nivel `WARN` en general e `INFO` para `com.smartgarden`.
   Cuotas relevantes del plan: 2000 retenidos sin caducidad, sesión MQTT 3.x de 2 h, 10 publicaciones/s por cliente,
   10 suscripciones por cliente, 1 GB de tráfico y 1 millón de minutos de conexión al mes.
 - Credenciales (las crea el usuario en la consola de EMQX): una para el backend (`MQTT_USERNAME`) y otra para el
-  ESP32 (`MQTT_DEVICE_USERNAME`). `aca.sh firmware` genera `mqtt_config.h` (ignorado por git).
+  ESP32 (`smartgarden-esp32`, en el `secrets.h` del firmware; plantilla `secrets.example.h`). Ambas solo necesitan
+  publicar y suscribirse en `smartgarden/esp32/#`.
 - El firmware envía la telemetría **por eventos**: al instante si cambia la bomba, `sensorOk` o la CONFIG; cuando la
   humedad varía 2 puntos o más (mínimo 1 s entre envíos); y un latido cada 10 s. Keepalive MQTT de 30 s. Tráfico
   esperado: 0,15–0,3 GB/mes. Si tras 24 h la consola de EMQX muestra más de 30 MB/día, subir
