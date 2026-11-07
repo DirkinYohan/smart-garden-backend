@@ -35,7 +35,6 @@ RUN SPRING_PROFILES_ACTIVE=docker \
     SPRING_DATASOURCE_URL=jdbc:postgresql://127.0.0.1:1/cds \
     SPRING_DATASOURCE_USERNAME=cds SPRING_DATASOURCE_PASSWORD=cds \
     SPRING_DATASOURCE_HIKARI_INITIALIZATION_FAIL_TIMEOUT=-1 \
-    SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=1000 \
     JWT_SECRET=cds-training-only-0123456789abcdefghij ADMIN_PASSWORD=cds-training-only \
     GEMINI_API_KEY=cds-training-only \
     java -XX:ArchiveClassesAtExit=/app/app.jsa -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k \
